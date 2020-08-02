@@ -35,7 +35,7 @@ type Credentials struct {
 }
 
 // Connect initializes a new API client based on manually provided Silk SDP server credentials. When possible,
-// the Rubrik credentials should not be stored as plain text in your .go file. ConnectEnv() can be used
+// the Silk credentials should not be stored as plain text in your .go file. ConnectEnv() can be used
 // as a safer alternative.
 func Connect(server, username, password string) *Credentials {
 	client := &Credentials{
