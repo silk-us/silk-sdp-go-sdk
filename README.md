@@ -29,7 +29,7 @@ func main() {
 		log.Fatal(err)
 	}
 	
-	fmt.Println(apiRequest.(map[string]interface{})["hits"])
+	fmt.Println(getHosts.(map[string]interface{})["hits"])
 
 	// Simplified Function to get hosts on the silker server
 	getHosts, err := silk.GetHosts()
