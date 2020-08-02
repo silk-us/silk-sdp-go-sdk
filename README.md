@@ -1,4 +1,4 @@
-# Silk SDP Go SDK
+# Silk SDP Go SDK (Beta)
 
 # Installation
 
