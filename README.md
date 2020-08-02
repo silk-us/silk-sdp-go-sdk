@@ -42,7 +42,7 @@ func main() {
 }
 ```
 
-# :Documentation
+# Documentation (Work In Progress)
 
 
 * [Quick Start Guide](/docs/quick-start.md)
