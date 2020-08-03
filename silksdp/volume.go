@@ -28,7 +28,7 @@ func (c *Credentials) CreateVolume(name string, sizeInGb int, volumeGroupName st
 	config["name"] = name
 	config["size"] = sizeInGb * 1024 * 1024
 	config["volume_group"] = volumeGroupConfig
-	config["vmware"] = vmware
+	config["vmware_support"] = vmware
 	config["description"] = description
 	config["read_only"] = readOnly
 
@@ -58,13 +58,15 @@ func (c *Credentials) GetVolumes(timeout ...int) (*GetVolumesResponse, error) {
 	}
 
 	// Convert the API Response (map[string]interface{}) to a struct
-	var apiResponse GetVolumesResponse
-	mapErr := mapstructure.Decode(apiRequest, &apiResponse)
+	var createVolume GetVolumesResponse
+	mapErr := mapstructure.Decode(apiRequest, &createVolume)
+	fmt.Println(mapErr)
 	if mapErr != nil {
+
 		return nil, mapErr
 	}
 
-	return &apiResponse, nil
+	return &createVolume, nil
 }
 
 // UpdateVolume updates the configuration of a Volume on the Silk server.
