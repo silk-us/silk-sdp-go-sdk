@@ -11,7 +11,7 @@ package main
 
 import (
 	"fmt"
-    "log"
+        "log"
 	
 	"github.com/silk-us/silk-sdp-go-sdk/silksdp"
 )
@@ -31,7 +31,7 @@ func main() {
 	
 	fmt.Println(getHosts.(map[string]interface{})["hits"])
 
-	// Simplified Function to get hosts on the silker server
+	// Simplified Function to get hosts on the Silk server
 	getHosts, err := silk.GetHosts()
 	if err != nil {
 		log.Fatal(err)
