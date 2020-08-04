@@ -86,7 +86,7 @@ func (c *Credentials) UpdateHost(name string, config map[string]interface{}, tim
 		return nil, err
 	}
 
-	apiRequest, err := c.Get(fmt.Sprintf("/hosts/%d", hostID), httpTimeout)
+	apiRequest, err := c.Patch(fmt.Sprintf("/hosts/%d", hostID), config, httpTimeout)
 	if err != nil {
 		return nil, err
 	}
