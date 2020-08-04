@@ -16,16 +16,15 @@ func (c *Credentials) CreateVolumeGroup(name string, quotaInGb int, enableDeDupl
 	config := map[string]interface{}{}
 	config["name"] = name
 	config["quota"] = quotaInGb * 1024 * 1024
-	config["is_dedupe"] = enableDeDuplication
+	config["is_dedup"] = enableDeDuplication
 	config["description"] = description
-	config["capacity_policy"] = capacityPolicy
+	config["capacityPolicy"] = capacityPolicy
 
 	apiRequest, err := c.Post("/volume_groups", config, httpTimeout)
 	if err != nil {
 		return nil, err
 	}
 
-	// Convert the API Response (map[string]interface{}) to a struct
 	var apiResponse CreateOrUpdateVolumeGroupResponse
 	mapErr := mapstructure.Decode(apiRequest, &apiResponse)
 	if mapErr != nil {
@@ -57,12 +56,12 @@ func (c *Credentials) GetVolumeGroups(timeout ...int) (*GetVolumeGroupsResponse,
 
 // UpdateVolumeGroup updates the Volume Group with the provided config options.
 //
-// Valid config keys are: name, quota, capacity_policy, and description.
+// Valid config keys are: name, quota, capacityPolicy, and description.
 func (c *Credentials) UpdateVolumeGroup(name string, config map[string]interface{}, timeout ...int) (*CreateOrUpdateVolumeGroupResponse, error) {
 	httpTimeout := httpTimeout(timeout)
 
 	// Validate that the user provided keys are valid for this API
-	validUpdateKeys := []string{"name", "quota", "capacity_policy", "description"}
+	validUpdateKeys := []string{"name", "quota", "capacityPolicy", "description"}
 	var invalidUserProvidedKeys []string
 	for key := range config {
 
@@ -73,7 +72,7 @@ func (c *Credentials) UpdateVolumeGroup(name string, config map[string]interface
 
 	// Return an error message if any invalid keys are found
 	if len(invalidUserProvidedKeys) != 0 {
-		return nil, fmt.Errorf("The provided 'config' parameter contains invalid keys. 'name', 'quota', 'capacity_policy', and 'description' are the only valid choices")
+		return nil, fmt.Errorf("The provided 'config' parameter contains invalid keys. 'name', 'quota', 'capacityPolicy', and 'description' are the only valid choices")
 	}
 
 	volumeGroupID, err := c.GetVolumeGroupID(name, httpTimeout)
