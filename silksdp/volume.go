@@ -90,24 +90,9 @@ func (c *Credentials) UpdateVolume(name string, config map[string]interface{}, t
 		return nil, fmt.Errorf("The provided 'config' parameter contains invalid keys. 'name', 'size', 'description', 'volume_group', and 'read_only' are the only valid choices")
 	}
 
-	volumesOnServer, err := c.GetVolumes(httpTimeout)
+	volumeID, err := c.GetVolumeID(name)
 	if err != nil {
 		return nil, err
-	}
-
-	// Set volumeID to a value (-1) that can not be returned by the server
-	volumeID := -1
-	for _, volume := range volumesOnServer.Hits {
-		if volume.Name == name {
-			volumeID = volume.ID
-		}
-
-	}
-
-	// If the volumeID has been updated, return an error message related to the volumeGroup group not being
-	// found
-	if volumeID == -1 {
-		return nil, fmt.Errorf("The server does not contain a Volume named '%s'", name)
 	}
 
 	apiRequest, err := c.Patch(fmt.Sprintf("/volumes/%d", volumeID), config, httpTimeout)
