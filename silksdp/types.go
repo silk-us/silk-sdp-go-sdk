@@ -4,31 +4,31 @@ type (
 	// GetVolumeGroupsResponse holds the response of the GetVolumeGroups() function
 	GetVolumeGroupsResponse struct {
 		Hits []struct {
-			CapacityPolicy             string  `mapstructure:"capacity_policy"`
-			CapacityState              string  `mapstructure:"capacity_state"`
-			CreationTime               float64 `mapstructure:"creation_time"`
-			Description                string  `mapstructure:"description"`
-			ID                         int     `mapstructure:"id"`
-			IsDedup                    bool    `mapstructure:"is_dedup"`
-			IsDefault                  bool    `mapstructure:"is_default"`
-			IscsiTgtConvertedName      string  `mapstructure:"iscsi_tgt_converted_name"`
-			LastRestoredFrom           string  `mapstructure:"last_restored_from"`
-			LastRestoredTime           int     `mapstructure:"last_restored_time"`
-			LastSnapshotCreationTime   int     `mapstructure:"last_snapshot_creation_time"`
-			LogicalCapacity            float64 `mapstructure:"logical_capacity"`
-			MappedHostsCount           int     `mapstructure:"mapped_hosts_count"`
-			Name                       string  `mapstructure:"name"`
-			Quota                      int     `mapstructure:"quota"`
-			ReplicationPeerVolumeGroup string  `mapstructure:"replication_peer_volume_group"`
-			ReplicationRpoHistory      string  `mapstructure:"replication_rpo_history"`
-			ReplicationSession         string  `mapstructure:"replication_session"`
-			SnapshotsCount             int     `mapstructure:"snapshots_count"`
-			SnapshotsLogicalCapacity   int     `mapstructure:"snapshots_logical_capacity"`
-			SnapshotsOverheadState     string  `mapstructure:"snapshots_overhead_state"`
-			ViewsCount                 int     `mapstructure:"views_count"`
-			VolumesCount               int     `mapstructure:"volumes_count"`
-			VolumesLogicalCapacity     int     `mapstructure:"volumes_logical_capacity"`
-			VolumesProvisionedCapacity int64   `mapstructure:"volumes_provisioned_capacity"`
+			CapacityPolicy             interface{} `mapstructure:"capacity_policy"`
+			CapacityState              string      `mapstructure:"capacity_state"`
+			CreationTime               float64     `mapstructure:"creation_time"`
+			Description                interface{} `mapstructure:"description"`
+			ID                         int         `mapstructure:"id"`
+			IsDedup                    bool        `mapstructure:"is_dedup"`
+			IsDefault                  bool        `mapstructure:"is_default"`
+			IscsiTgtConvertedName      string      `mapstructure:"iscsi_tgt_converted_name"`
+			LastRestoredFrom           interface{} `mapstructure:"last_restored_from"`
+			LastRestoredTime           interface{} `mapstructure:"last_restored_time"`
+			LastSnapshotCreationTime   int         `mapstructure:"last_snapshot_creation_time"`
+			LogicalCapacity            float64     `mapstructure:"logical_capacity"`
+			MappedHostsCount           int         `mapstructure:"mapped_hosts_count"`
+			Name                       string      `mapstructure:"name"`
+			Quota                      interface{} `mapstructure:"quota"`
+			ReplicationPeerVolumeGroup interface{} `mapstructure:"replication_peer_volume_group"`
+			ReplicationRpoHistory      interface{} `mapstructure:"replication_rpo_history"`
+			ReplicationSession         interface{} `mapstructure:"replication_session"`
+			SnapshotsCount             int         `mapstructure:"snapshots_count"`
+			SnapshotsLogicalCapacity   int         `mapstructure:"snapshots_logical_capacity"`
+			SnapshotsOverheadState     string      `mapstructure:"snapshots_overhead_state"`
+			ViewsCount                 int         `mapstructure:"views_count"`
+			VolumesCount               int         `mapstructure:"volumes_count"`
+			VolumesLogicalCapacity     int         `mapstructure:"volumes_logical_capacity"`
+			VolumesProvisionedCapacity int64       `mapstructure:"volumes_provisioned_capacity"`
 		} `mapstructure:"hits"`
 		Limit  int `mapstructure:"limit"`
 		Offset int `mapstructure:"offset"`
@@ -38,67 +38,65 @@ type (
 	// CreateOrUpdateVolumeGroupResponse holds the response of the CreateVolumeGroup() and
 	// UpdateVolumeGroup() functions
 	CreateOrUpdateVolumeGroupResponse struct {
-		CapacityPolicy             string `mapstructure:"capacity_policy"`
-		CapacityState              string `mapstructure:"capacity_state"`
-		CreationTime               int    `mapstructure:"creation_time"`
-		Description                string `mapstructure:"description"`
-		ID                         int    `mapstructure:"id"`
-		IsDedup                    bool   `mapstructure:"is_dedup"`
-		IsDefault                  bool   `mapstructure:"is_default"`
-		LastRestoredFrom           string `mapstructure:"last_restored_from"`
-		LastRestoredTime           int    `mapstructure:"last_restored_time"`
-		LastSnapshotCreationTime   int    `mapstructure:"last_snapshot_creation_time"`
-		LogicalCapacity            int    `mapstructure:"logical_capacity"`
-		MappedHostsCount           int    `mapstructure:"mapped_hosts_count"`
-		Name                       string `mapstructure:"name"`
-		Quota                      int    `mapstructure:"quota"`
-		ReplicationPeerVolumeGroup string `mapstructure:"replication_peer_volume_group"`
-		ReplicationRpoHistory      string `mapstructure:"replication_rpo_history"`
-		ReplicationSession         string `mapstructure:"replication_session"`
-		SnapshotsCount             int    `mapstructure:"snapshots_count"`
-		SnapshotsLogicalCapacity   int    `mapstructure:"snapshots_logical_capacity"`
-		SnapshotsOverheadState     string `mapstructure:"snapshots_overhead_state"`
-		ViewsCount                 int    `mapstructure:"views_count"`
-		VolumesCount               int    `mapstructure:"volumes_count"`
-		VolumesLogicalCapacity     int    `mapstructure:"volumes_logical_capacity"`
-		VolumesProvisionedCapacity int    `mapstructure:"volumes_provisioned_capacity"`
-		PipeID                     int    `mapstructure:"pipeId"`
-		PipeName                   string `mapstructure:"pipeName"`
+		CapacityPolicy             interface{} `mapstructure:"capacity_policy"`
+		CapacityState              string      `mapstructure:"capacity_state"`
+		CreationTime               int         `mapstructure:"creation_time"`
+		Description                interface{} `mapstructure:"description"`
+		ID                         int         `mapstructure:"id"`
+		IsDedup                    bool        `mapstructure:"is_dedup"`
+		IsDefault                  bool        `mapstructure:"is_default"`
+		LastRestoredFrom           interface{} `mapstructure:"last_restored_from"`
+		LastRestoredTime           interface{} `mapstructure:"last_restored_time"`
+		LastSnapshotCreationTime   int         `mapstructure:"last_snapshot_creation_time"`
+		LogicalCapacity            int         `mapstructure:"logical_capacity"`
+		MappedHostsCount           int         `mapstructure:"mapped_hosts_count"`
+		Name                       string      `mapstructure:"name"`
+		Quota                      interface{} `mapstructure:"quota"`
+		ReplicationPeerVolumeGroup interface{} `mapstructure:"replication_peer_volume_group"`
+		ReplicationRpoHistory      interface{} `mapstructure:"replication_rpo_history"`
+		ReplicationSession         interface{} `mapstructure:"replication_session"`
+		SnapshotsCount             int         `mapstructure:"snapshots_count"`
+		SnapshotsLogicalCapacity   int         `mapstructure:"snapshots_logical_capacity"`
+		SnapshotsOverheadState     string      `mapstructure:"snapshots_overhead_state"`
+		ViewsCount                 int         `mapstructure:"views_count"`
+		VolumesCount               int         `mapstructure:"volumes_count"`
+		VolumesLogicalCapacity     int         `mapstructure:"volumes_logical_capacity"`
+		VolumesProvisionedCapacity int         `mapstructure:"volumes_provisioned_capacity"`
+		PipeID                     int         `mapstructure:"pipeId"`
+		PipeName                   string      `mapstructure:"pipeName"`
 	}
 
 	// CreateOrUpdateVolumeResponse holds the response of the CreateVolume() and
 	// UpdateVolume() functions
 	CreateOrUpdateVolumeResponse struct {
-		AvgCompressedRatio          float64 `mapstructure:"avg_compressed_ratio"`
-		AvgCompressedRatioTimestamp int     `mapstructure:"avg_compressed_ratio_timestamp"`
-		CreationTime                int     `mapstructure:"creation_time"`
-		CurrentReplicationStats     struct {
-			Ref string `mapstructure:"ref"`
-		} `mapstructure:"current_replication_stats"`
-		CurrentStats struct {
+		AvgCompressedRatio          float64     `mapstructure:"avg_compressed_ratio"`
+		AvgCompressedRatioTimestamp int         `mapstructure:"avg_compressed_ratio_timestamp"`
+		CreationTime                int         `mapstructure:"creation_time"`
+		CurrentReplicationStats     interface{} `mapstructure:"current_replication_stats"`
+		CurrentStats                struct {
 			Ref string `mapstructure:"ref"`
 		} `mapstructure:"current_stats"`
-		DedupSource                    int    `mapstructure:"dedup_source"`
-		DedupTarget                    int    `mapstructure:"dedup_target"`
-		Description                    string `mapstructure:"description"`
-		ID                             int    `mapstructure:"id"`
-		IsDedup                        bool   `mapstructure:"is_dedup"`
-		IsNew                          bool   `mapstructure:"is_new"`
-		LastRestoredFrom               string `mapstructure:"last_restored_from"`
-		LastRestoredTime               int    `mapstructure:"last_restored_time"`
-		LogicalCapacity                int    `mapstructure:"logical_capacity"`
-		MarkedForDeletion              bool   `mapstructure:"marked_for_deletion"`
-		Name                           string `mapstructure:"name"`
-		NoDedup                        int    `mapstructure:"no_dedup"`
-		NodeID                         int    `mapstructure:"node_id"`
-		ReadOnly                       bool   `mapstructure:"read_only"`
-		ReplicationPeerVolume          string `mapstructure:"replication_peer_volume"`
-		ScsiSn                         string `mapstructure:"scsi_sn"`
-		ScsiSuffix                     int    `mapstructure:"scsi_suffix"`
-		Size                           int    `mapstructure:"size"`
-		SnapshotsLogicalCapacity       int    `mapstructure:"snapshots_logical_capacity"`
-		StreamAvgCompressedSizeInBytes int    `mapstructure:"stream_avg_compressed_size_in_bytes"`
-		VmwareSupport                  bool   `mapstructure:"vmware_support"`
+		DedupSource                    int         `mapstructure:"dedup_source"`
+		DedupTarget                    int         `mapstructure:"dedup_target"`
+		Description                    interface{} `mapstructure:"description"`
+		ID                             int         `mapstructure:"id"`
+		IsDedup                        bool        `mapstructure:"is_dedup"`
+		IsNew                          bool        `mapstructure:"is_new"`
+		LastRestoredFrom               interface{} `mapstructure:"last_restored_from"`
+		LastRestoredTime               interface{} `mapstructure:"last_restored_time"`
+		LogicalCapacity                int         `mapstructure:"logical_capacity"`
+		MarkedForDeletion              bool        `mapstructure:"marked_for_deletion"`
+		Name                           string      `mapstructure:"name"`
+		NoDedup                        int         `mapstructure:"no_dedup"`
+		NodeID                         int         `mapstructure:"node_id"`
+		ReadOnly                       bool        `mapstructure:"read_only"`
+		ReplicationPeerVolume          string      `mapstructure:"replication_peer_volume"`
+		ScsiSn                         string      `mapstructure:"scsi_sn"`
+		ScsiSuffix                     int         `mapstructure:"scsi_suffix"`
+		Size                           int         `mapstructure:"size"`
+		SnapshotsLogicalCapacity       int         `mapstructure:"snapshots_logical_capacity"`
+		StreamAvgCompressedSizeInBytes int         `mapstructure:"stream_avg_compressed_size_in_bytes"`
+		VmwareSupport                  bool        `mapstructure:"vmware_support"`
 		VolumeGroup                    struct {
 			Ref string `mapstructure:"ref"`
 		} `mapstructure:"volume_group"`
@@ -109,29 +107,27 @@ type (
 	// GetVolumesResponse holds the response of the GetVolumes() function
 	GetVolumesResponse struct {
 		Hits []struct {
-			AvgCompressedRatio          int     `mapstructure:"avg_compressed_ratio"`
-			AvgCompressedRatioTimestamp float64 `mapstructure:"avg_compressed_ratio_timestamp"`
-			CreationTime                int     `mapstructure:"creation_time"`
-			CurrentReplicationStats     struct {
-				Ref string `mapstructure:"ref"`
-			} `mapstructure:"current_replication_stats"`
-			CurrentStats struct {
+			AvgCompressedRatio          int         `mapstructure:"avg_compressed_ratio"`
+			AvgCompressedRatioTimestamp float64     `mapstructure:"avg_compressed_ratio_timestamp"`
+			CreationTime                int         `mapstructure:"creation_time"`
+			CurrentReplicationStats     interface{} `mapstructure:"current_replication_stats"`
+			CurrentStats                struct {
 				Ref string `mapstructure:"ref"`
 			} `mapstructure:"current_stats"`
-			DedupSource           int    `mapstructure:"dedup_source"`
-			DedupTarget           int    `mapstructure:"dedup_target"`
-			Description           string `mapstructure:"description"`
-			ID                    int    `mapstructure:"id"`
-			IsDedup               bool   `mapstructure:"is_dedup"`
-			IsNew                 bool   `mapstructure:"is_new"`
-			LastRestoredFrom      int    `mapstructure:"last_restored_from"`
-			LastRestoredTime      int    `mapstructure:"last_restored_time"`
-			LogicalCapacity       int    `mapstructure:"logical_capacity"`
-			MarkedForDeletion     bool   `mapstructure:"marked_for_deletion"`
-			Name                  string `mapstructure:"name"`
-			NoDedup               int    `mapstructure:"no_dedup"`
-			NodeID                int    `mapstructure:"node_id"`
-			ReadOnly              bool   `mapstructure:"read_only"`
+			DedupSource           int         `mapstructure:"dedup_source"`
+			DedupTarget           int         `mapstructure:"dedup_target"`
+			Description           interface{} `mapstructure:"description"`
+			ID                    int         `mapstructure:"id"`
+			IsDedup               bool        `mapstructure:"is_dedup"`
+			IsNew                 bool        `mapstructure:"is_new"`
+			LastRestoredFrom      interface{} `mapstructure:"last_restored_from"`
+			LastRestoredTime      interface{} `mapstructure:"last_restored_time"`
+			LogicalCapacity       int         `mapstructure:"logical_capacity"`
+			MarkedForDeletion     bool        `mapstructure:"marked_for_deletion"`
+			Name                  string      `mapstructure:"name"`
+			NoDedup               int         `mapstructure:"no_dedup"`
+			NodeID                int         `mapstructure:"node_id"`
+			ReadOnly              bool        `mapstructure:"read_only"`
 			ReplicationPeerVolume struct {
 				Ref string `mapstructure:"ref"`
 			} `mapstructure:"replication_peer_volume"`
@@ -185,25 +181,25 @@ type (
 	// CreateOrUpdateHostGroupResponse holds the response of the CreateHostGroup() and
 	// UpdateHostGroup() functions
 	CreateOrUpdateHostGroupResponse struct {
-		AllowDifferentHostTypes bool   `mapstructure:"allow_different_host_types"`
-		Description             string `mapstructure:"description"`
-		HostsCount              int    `mapstructure:"hosts_count"`
-		ID                      int    `mapstructure:"id"`
-		Name                    string `mapstructure:"name"`
-		ViewsCount              int    `mapstructure:"views_count"`
-		VolumesCount            int    `mapstructure:"volumes_count"`
+		AllowDifferentHostTypes bool        `mapstructure:"allow_different_host_types"`
+		Description             interface{} `mapstructure:"description"`
+		HostsCount              int         `mapstructure:"hosts_count"`
+		ID                      int         `mapstructure:"id"`
+		Name                    string      `mapstructure:"name"`
+		ViewsCount              int         `mapstructure:"views_count"`
+		VolumesCount            int         `mapstructure:"volumes_count"`
 	}
 
 	// GetHostGroupsResponse holds the response of the GetHostGroups() function
 	GetHostGroupsResponse struct {
 		Hits []struct {
-			AllowDifferentHostTypes bool   `mapstructure:"allow_different_host_types"`
-			Description             string `mapstructure:"description"`
-			HostsCount              int    `mapstructure:"hosts_count"`
-			ID                      int    `mapstructure:"id"`
-			Name                    string `mapstructure:"name"`
-			ViewsCount              int    `mapstructure:"views_count"`
-			VolumesCount            int    `mapstructure:"volumes_count"`
+			AllowDifferentHostTypes bool        `mapstructure:"allow_different_host_types"`
+			Description             interface{} `mapstructure:"description"`
+			HostsCount              int         `mapstructure:"hosts_count"`
+			ID                      int         `mapstructure:"id"`
+			Name                    string      `mapstructure:"name"`
+			ViewsCount              int         `mapstructure:"views_count"`
+			VolumesCount            int         `mapstructure:"volumes_count"`
 		} `mapstructure:"hits"`
 		Limit  int `mapstructure:"limit"`
 		Offset int `mapstructure:"offset"`
