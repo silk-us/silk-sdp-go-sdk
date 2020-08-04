@@ -60,7 +60,6 @@ func (c *Credentials) GetVolumes(timeout ...int) (*GetVolumesResponse, error) {
 	// Convert the API Response (map[string]interface{}) to a struct
 	var createVolume GetVolumesResponse
 	mapErr := mapstructure.Decode(apiRequest, &createVolume)
-	fmt.Println(mapErr)
 	if mapErr != nil {
 
 		return nil, mapErr
