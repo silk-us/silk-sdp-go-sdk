@@ -70,7 +70,7 @@ func (c *Credentials) GetVolumes(timeout ...int) (*GetVolumesResponse, error) {
 
 // UpdateVolume updates the configuration of a Volume on the Silk server.
 //
-// Valid keys for the config map[string]interface{} are: name, size, description, volume_group, and read_only.
+// Valid keys for the config are: `name`, `size`, `description`, `volume_group`, and `read_only`.
 func (c *Credentials) UpdateVolume(name string, config map[string]interface{}, timeout ...int) (*CreateOrUpdateVolumeResponse, error) {
 
 	httpTimeout := httpTimeout(timeout)

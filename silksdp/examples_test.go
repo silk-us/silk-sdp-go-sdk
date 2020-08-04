@@ -737,3 +737,23 @@ func ExampleCredentials_CreateHostIQN() {
 	fmt.Println(createHostIQN)
 
 }
+
+func ExampleCredentials_GetCapacityPolicyName() {
+
+	// Use ConnectEnv to look up the Silk Server, Username, and Password
+	// using environment variables
+	silk, err := silksdp.ConnectEnv()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	policyID := 9
+
+	getPolicyName, err := silk.GetCapacityPolicyName(policyID)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Println(getPolicyName)
+
+}

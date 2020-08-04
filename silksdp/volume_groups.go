@@ -8,7 +8,7 @@ import (
 
 // CreateVolumeGroup creates a new Volume Group on the Silk server.
 //
-// `enableDeDuplication` corresponds to "Provisioning Type" in the UI. When set to true, the Provisioning Type will be "thin Pprovisioning with dedupe"
+// `enableDeDuplication` corresponds to "Provisioning Type" in the UI. When set to true, the Provisioning Type will be "thin provisioning with dedupe"
 func (c *Credentials) CreateVolumeGroup(name string, quotaInGb int, enableDeDuplication bool, description string, capacityPolicy string, timeout ...int) (*CreateOrUpdateVolumeGroupResponse, error) {
 
 	httpTimeout := httpTimeout(timeout)
@@ -18,7 +18,7 @@ func (c *Credentials) CreateVolumeGroup(name string, quotaInGb int, enableDeDupl
 	config["quota"] = quotaInGb * 1024 * 1024
 	config["is_dedupe"] = enableDeDuplication
 	config["description"] = description
-	config["capacityPolicy"] = capacityPolicy
+	config["capacity_policy"] = capacityPolicy
 
 	apiRequest, err := c.Post("/volume_groups", config, httpTimeout)
 	if err != nil {
@@ -149,4 +149,36 @@ func (c *Credentials) GetVolumeGroupID(name string, timeout ...int) (int, error)
 
 	return objectID, nil
 
+}
+
+// GetCapacityPolicyName returns the name of the Capacity Police based on the provided Capacity Policy id.
+func (c *Credentials) GetCapacityPolicyName(id int, timeout ...int) (string, error) {
+
+	httpTimeout := httpTimeout(timeout)
+
+	apiRequest, err := c.Get("/vg_capacity_policies", httpTimeout)
+	if err != nil {
+		return "", err
+	}
+
+	// Convert the API Response (map[string]interface{}) to a struct
+	var apiResponse GetCapacityPolicyResponse
+	mapErr := mapstructure.Decode(apiRequest, &apiResponse)
+	if mapErr != nil {
+		return "", mapErr
+	}
+
+	objectName := ""
+	for _, object := range apiResponse.Hits {
+		if object.ID == id {
+			objectName = object.Name
+		}
+	}
+
+	// If the objectID has not been updated (i.e not found on the server) return an error message
+	if objectName == "" {
+		return "", fmt.Errorf("The server does not contain a Capacity Policy with the ID of '%d'", id)
+	}
+
+	return objectName, nil
 }

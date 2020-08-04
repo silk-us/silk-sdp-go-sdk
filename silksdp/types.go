@@ -314,6 +314,24 @@ type (
 		Iqn string `mapstructure:"iqn"`
 	}
 
+	// GetCapacityPolicyResponse holds the response of the GetCapacityPolicyName() function
+	GetCapacityPolicyResponse struct {
+		Hits []struct {
+			CriticalThreshold         int    `json:"critical_threshold"`
+			ErrorThreshold            int    `json:"error_threshold"`
+			FullThreshold             int    `json:"full_threshold"`
+			ID                        int    `json:"id"`
+			IsDefault                 bool   `json:"is_default"`
+			Name                      string `json:"name"`
+			NumSnapshots              int    `json:"num_snapshots"`
+			SnapshotOverheadThreshold int    `json:"snapshot_overhead_threshold"`
+			WarningThreshold          int    `json:"warning_threshold"`
+		} `json:"hits"`
+		Limit  int `json:"limit"`
+		Offset int `json:"offset"`
+		Total  int `json:"total"`
+	}
+
 	// DeleteResponse holds the response of the Delete base function. The status code will always be 204.
 	DeleteResponse struct {
 		StatusCode int `mapstructure:"status_code"`
