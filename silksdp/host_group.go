@@ -417,3 +417,29 @@ func (c *Credentials) DeleteHostGroupVolumeGroupMapping(hostGroupName, volumeGro
 
 	return &apiResponse, nil
 }
+
+// GetHostGroupHosts provides the name of each Host in a Host Group.
+func (c *Credentials) GetHostGroupHosts(name string, timeout ...int) ([]string, error) {
+
+	httpTimeout := httpTimeout(timeout)
+
+	hostGroupID, err := c.GetHostGroupID(name, httpTimeout)
+	if err != nil {
+		return nil, err
+	}
+
+	hostsOnServer, err := c.GetHosts(httpTimeout)
+	if err != nil {
+		return nil, err
+	}
+
+	hostsInHostGroup := []string{}
+
+	for _, host := range hostsOnServer.Hits {
+		if host.HostGroup.Ref == fmt.Sprintf("/host_groups/%d", hostGroupID) {
+			hostsInHostGroup = append(hostsInHostGroup, host.Name)
+		}
+	}
+
+	return hostsInHostGroup, nil
+}
