@@ -2,6 +2,8 @@ package silksdp
 
 import (
 	"fmt"
+	"strconv"
+	"strings"
 
 	"github.com/mitchellh/mapstructure"
 )
@@ -162,4 +164,104 @@ func (c *Credentials) GetVolumeID(name string, timeout ...int) (int, error) {
 
 	return objectID, nil
 
+}
+
+// GetVolumeHostMappings returns all Hosts that are mapped to the provided Volume.
+func (c *Credentials) GetVolumeHostMappings(volumeName string, timeout ...int) ([]string, error) {
+
+	httpTimeout := httpTimeout(timeout)
+
+	volumeID, err := c.GetVolumeID(volumeName)
+	if err != nil {
+		return nil, err
+	}
+
+	hostMappingsOnServer, err := c.GetHostMappings(httpTimeout)
+	if err != nil {
+		return nil, err
+	}
+
+	// Filter out the user provided volume and host from the hostMappingsOnServer
+	// results
+	hostName := []string{}
+
+	for _, mapping := range hostMappingsOnServer {
+		if mapping.Volume.Ref == fmt.Sprintf("/volumes/%d", volumeID) {
+			var hostID int
+			if strings.Contains(mapping.Host.Ref, "/hosts") == true {
+
+				hostRefID := strings.Replace(mapping.Host.Ref, "/hosts/", "", 1)
+				hostID, err = strconv.Atoi(hostRefID)
+				if err != nil {
+					return nil, err
+				}
+
+				name, err := c.GetHostName(hostID)
+				if err != nil {
+					return nil, err
+				}
+
+				hostName = append(hostName, name)
+			}
+
+		}
+
+	}
+
+	// If the mappingID has not been updated (i.e not found on the server) return an error message
+	if len(hostName) == 0 {
+		return nil, fmt.Errorf("No Host Mappings found on the Volume '%s'", volumeName)
+	}
+
+	return hostName, nil
+}
+
+// GetVolumeHostGroupMappings returns all Host Groups that are mapped to the provided Volume.
+func (c *Credentials) GetVolumeHostGroupMappings(volumeName string, timeout ...int) ([]string, error) {
+
+	httpTimeout := httpTimeout(timeout)
+
+	volumeID, err := c.GetVolumeID(volumeName)
+	if err != nil {
+		return nil, err
+	}
+
+	hostGroupMappingsOnServer, err := c.GetHostMappings(httpTimeout)
+	if err != nil {
+		return nil, err
+	}
+
+	// Filter out the user provided volume and host from the hostMappingsOnServer
+	// results
+	hostName := []string{}
+
+	for _, mapping := range hostGroupMappingsOnServer {
+		if mapping.Volume.Ref == fmt.Sprintf("/volumes/%d", volumeID) {
+			var hostGroupID int
+			if strings.Contains(mapping.Host.Ref, "/host_groups") == true {
+
+				hostGroupRefID := strings.Replace(mapping.Host.Ref, "/host_groups/", "", 1)
+				hostGroupID, err = strconv.Atoi(hostGroupRefID)
+				if err != nil {
+					return nil, err
+				}
+
+				name, err := c.GetHostGroupName(hostGroupID)
+				if err != nil {
+					return nil, err
+				}
+
+				hostName = append(hostName, name)
+			}
+
+		}
+
+	}
+
+	// If the mappingID has not been updated (i.e not found on the server) return an error message
+	if len(hostName) == 0 {
+		return nil, fmt.Errorf("No Host Mappings found on the Volume '%s'", volumeName)
+	}
+
+	return hostName, nil
 }
