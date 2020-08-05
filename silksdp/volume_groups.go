@@ -2,6 +2,8 @@ package silksdp
 
 import (
 	"fmt"
+	"strconv"
+	"strings"
 
 	"github.com/mitchellh/mapstructure"
 )
@@ -180,4 +182,87 @@ func (c *Credentials) GetCapacityPolicyName(id int, timeout ...int) (string, err
 	}
 
 	return objectName, nil
+}
+
+// GetVolumeGroupHostMappings returns all Hosts that are mapped to the provided Volume Group.
+func (c *Credentials) GetVolumeGroupHostMappings(volumeGroupName string, timeout ...int) ([]string, error) {
+
+	httpTimeout := httpTimeout(timeout)
+
+	volumeGroupID, err := c.GetVolumeGroupID(volumeGroupName)
+	if err != nil {
+		return nil, err
+	}
+
+	hostMappingsOnServer, err := c.GetHostMappings(httpTimeout)
+	if err != nil {
+		return nil, err
+	}
+
+	// Filter out the user provided volume and host from the hostMappingsOnServer
+	// results
+	hostName := []string{}
+
+	for _, mapping := range hostMappingsOnServer {
+		if mapping.Volume.Ref == fmt.Sprintf("/volume_groups/%d", volumeGroupID) {
+			var hostID int
+			if strings.Contains(mapping.Host.Ref, "/hosts") == true {
+
+				hostRefID := strings.Replace(mapping.Host.Ref, "/hosts/", "", 1)
+				hostID, err = strconv.Atoi(hostRefID)
+				if err != nil {
+					return nil, err
+				}
+
+				name, err := c.GetHostName(hostID)
+				if err != nil {
+					return nil, err
+				}
+
+				hostName = append(hostName, name)
+			}
+
+		}
+
+	}
+
+	// If the mappingID has not been updated (i.e not found on the server) return an error message
+	if len(hostName) == 0 {
+		return nil, fmt.Errorf("No Host Mappings found on the Volume Group '%s'", volumeGroupName)
+	}
+
+	return hostName, nil
+}
+
+// GetVolumeGroupVolumes provides the name of every Volume in a Volume Group.
+func (c *Credentials) GetVolumeGroupVolumes(name string, timeout ...int) ([]string, error) {
+
+	httpTimeout := httpTimeout(timeout)
+
+	volumeGroupID, err := c.GetVolumeGroupID(name)
+	if err != nil {
+		return nil, err
+	}
+
+	volumesOnServer, err := c.GetVolumes(httpTimeout)
+	if err != nil {
+		return nil, err
+	}
+
+	// Set objectID to a value (-1) that can not be returned by the server
+	volumes := []string{}
+	for _, volume := range volumesOnServer.Hits {
+
+		if string(volume.VolumeGroup.Ref) == fmt.Sprintf("/volume_groups/%d", volumeGroupID) {
+			volumes = append(volumes, volume.Name)
+		}
+
+	}
+
+	if len(volumes) == 0 {
+		return nil, fmt.Errorf("The Volume Group '%s' does not contain any Volumes", name)
+	}
+
+	return volumes, nil
+
 }
