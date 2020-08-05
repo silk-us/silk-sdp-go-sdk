@@ -677,6 +677,27 @@ func ExampleCredentials_DeleteHostPWWN() {
 
 }
 
+func ExampleCredentials_DeleteHostIndividualPWWN() {
+
+	// Use ConnectEnv to look up the Silk Server, Username, and Password
+	// using environment variables
+	silk, err := silksdp.ConnectEnv()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	hostName := "ExampleHostName"
+	pwwn := "20:16:33:79:55:99:ab:9f"
+
+	deleteSinglePWWN, err := silk.DeleteHostIndividualPWWN(hostName, pwwn)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Println(deleteSinglePWWN)
+
+}
+
 func ExampleCredentials_GetHostIQN() {
 
 	// Use ConnectEnv to look up the Silk Server, Username, and Password
@@ -714,6 +735,27 @@ func ExampleCredentials_DeleteHostIQN() {
 	}
 
 	fmt.Println(deleteHostIQN)
+
+}
+
+func ExampleCredentials_DeleteHostIndividualIQN() {
+
+	// Use ConnectEnv to look up the Silk Server, Username, and Password
+	// using environment variables
+	silk, err := silksdp.ConnectEnv()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	hostName := "ExampleHostName"
+	iqn := "iqn.2009-01.com.kaminario:storage.k2.2289`"
+
+	deleteSingleIQN, err := silk.DeleteHostIndividualIQN(hostName, iqn)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Println(deleteSingleIQN)
 
 }
 

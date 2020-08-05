@@ -453,6 +453,48 @@ func (c *Credentials) DeleteHostPWWN(hostName string, timeout ...int) (*DeleteRe
 	return &apiResponse, nil
 }
 
+// DeleteHostIndividualPWWN removes a specific PWWN from a Host.
+func (c *Credentials) DeleteHostIndividualPWWN(hostName, pwwn string, timeout ...int) (*DeleteResponse, error) {
+
+	httpTimeout := httpTimeout(timeout)
+
+	hostPWWNs, err := c.GetHostPWWN(hostName)
+	if err != nil {
+		return nil, err
+	}
+
+	// Get the host id of each PWWN/Host mapping returned in hostPWWNs
+	var pwwnToDelete []int
+	for _, host := range hostPWWNs {
+		if host.Pwwn == pwwn {
+			pwwnToDelete = append(pwwnToDelete, host.ID)
+
+		}
+	}
+
+	// If the pwwnToDelete slice is empty (i.e no PWWN mappings found for the host) return an error message
+	if len(pwwnToDelete) == 0 {
+		return nil, fmt.Errorf("No PWWNs found on the host '%s'", hostName)
+	}
+
+	// Loop through every id in the pwwnToDelete slice and execute a delete call on that
+	// id
+	for _, id := range pwwnToDelete {
+		_, err := c.Delete(fmt.Sprintf("/host_fc_ports/%d", id), httpTimeout)
+		if err != nil {
+			return nil, err
+		}
+
+	}
+
+	// Since we are ignoring the response of each of the Delete calls above,
+	// create a "dummy" DeleteReponse to return to the end user to signify success
+	var apiResponse DeleteResponse
+	apiResponse.StatusCode = 204
+
+	return &apiResponse, nil
+}
+
 // GetHostIQN returns all IQNs that have been added to the Host.
 //
 // The returned []IndividualHostIQNResponse slice only contains information on the Host IQN mappings and not
@@ -490,7 +532,48 @@ func (c *Credentials) GetHostIQN(hostName string, timeout ...int) ([]IndividualH
 	return hostIQN, nil
 }
 
-// DeleteHostIQN removes all IQNs from a Host.
+// DeleteHostIndividualIQN removes a specific IQN from a Host.
+func (c *Credentials) DeleteHostIndividualIQN(hostName, iqn string, timeout ...int) (*DeleteResponse, error) {
+
+	httpTimeout := httpTimeout(timeout)
+
+	hostIQNs, err := c.GetHostIQN(hostName)
+	if err != nil {
+		return nil, err
+	}
+
+	// Get the host id of each IQN/Host mapping returned in hostIQNs
+	var iqnToDelete []int
+	for _, host := range hostIQNs {
+		if host.Iqn == iqn {
+			iqnToDelete = append(iqnToDelete, host.ID)
+
+		}
+
+	}
+
+	// If the iqnToDelete slice is empty (i.e no PWWN mappings found for the host) return an error message
+	if len(iqnToDelete) == 0 {
+		return nil, fmt.Errorf("No IQNs found on the host '%s'", hostName)
+	}
+
+	for _, id := range iqnToDelete {
+		_, err := c.Delete(fmt.Sprintf("/host_iqns/%d", id), httpTimeout)
+		if err != nil {
+			return nil, err
+		}
+
+	}
+
+	// Since we are ignoring the response of each of the Delete calls above,
+	// create a "dummy" DeleteReponse to return to the end user to signify success
+	var apiResponse DeleteResponse
+	apiResponse.StatusCode = 204
+
+	return &apiResponse, nil
+
+}
+
 func (c *Credentials) DeleteHostIQN(hostName string, timeout ...int) (*DeleteResponse, error) {
 
 	httpTimeout := httpTimeout(timeout)
