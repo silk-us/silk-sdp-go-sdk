@@ -2,7 +2,6 @@ package silksdp
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/mitchellh/mapstructure"
 )
@@ -208,9 +207,10 @@ func (c *Credentials) GetHostMappings(timeout ...int) ([]IndividualHostMappingRe
 	// slice that will be returned to the user.
 	var hostMappings []IndividualHostMappingResponse
 	for _, value := range apiResponse.Hits {
-		if strings.Contains(value.Host.Ref, "/hosts") == true {
-			hostMappings = append(hostMappings, value)
-		}
+		// if strings.Contains(value.Host.Ref, "/hosts") == true {
+		// 	hostMappings = append(hostMappings, value)
+		// }
+		hostMappings = append(hostMappings, value)
 	}
 
 	return hostMappings, nil
@@ -342,6 +342,60 @@ func (c *Credentials) GetHostID(name string, timeout ...int) (int, error) {
 	}
 
 	return objectID, nil
+
+}
+
+func (c *Credentials) GetHostName(id int, timeout ...int) (string, error) {
+
+	httpTimeout := httpTimeout(timeout)
+
+	objectsOnServer, err := c.GetHosts(httpTimeout)
+	if err != nil {
+		return "", err
+	}
+
+	// Set objectID to a value (-1) that can not be returned by the server
+	objectName := ""
+	for _, object := range objectsOnServer.Hits {
+		if object.ID == id {
+			objectName = object.Name
+		}
+
+	}
+
+	// If the objectName has not been updated (i.e not found on the server) return an error message
+	if objectName == "" {
+		return "", fmt.Errorf("The server does not contain a Host with the ID of '%d'", id)
+	}
+
+	return objectName, nil
+
+}
+
+func (c *Credentials) GetHostGroupName(id int, timeout ...int) (string, error) {
+
+	httpTimeout := httpTimeout(timeout)
+
+	objectsOnServer, err := c.GetHostGroups(httpTimeout)
+	if err != nil {
+		return "", err
+	}
+
+	// Set objectID to a value (-1) that can not be returned by the server
+	objectName := ""
+	for _, object := range objectsOnServer.Hits {
+		if object.ID == id {
+			objectName = object.Name
+		}
+
+	}
+
+	// If the objectName has not been updated (i.e not found on the server) return an error message
+	if objectName == "" {
+		return "", fmt.Errorf("The server does not contain a Host Group with the ID of '%d'", id)
+	}
+
+	return objectName, nil
 
 }
 
