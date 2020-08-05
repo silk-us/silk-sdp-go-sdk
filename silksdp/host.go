@@ -799,3 +799,92 @@ func (c *Credentials) CreateHostIQN(hostName, IQN string, timeout ...int) (*Crea
 
 	return &apiResponse, nil
 }
+
+// CreateHostHostGroupMapping adds a Host to a Host Group.
+func (c *Credentials) CreateHostHostGroupMapping(hostName, hostGroupName string, timeout ...int) (*CreateOrUpdateHostResponse, error) {
+
+	httpTimeout := httpTimeout(timeout)
+
+	hostID, err := c.GetHostID(hostName)
+	if err != nil {
+		return nil, err
+	}
+
+	hostGroupID, err := c.GetHostGroupID(hostGroupName)
+	if err != nil {
+		return nil, err
+	}
+
+	hostGroupConfig := map[string]string{}
+	hostGroupConfig["ref"] = fmt.Sprintf("/host_groups/%d", hostGroupID)
+
+	config := map[string]interface{}{}
+	config["host_group"] = hostGroupConfig
+
+	apiRequest, err := c.Patch(fmt.Sprintf("/hosts/%d", hostID), config, httpTimeout)
+	if err != nil {
+		return nil, err
+	}
+
+	// Convert the API Response (map[string]interface{}) to a struct
+	var apiResponse CreateOrUpdateHostResponse
+	mapErr := mapstructure.Decode(apiRequest, &apiResponse)
+	if mapErr != nil {
+		return nil, mapErr
+	}
+
+	return &apiResponse, nil
+
+}
+
+// DeleteHostHostGroupMapping removes a Host to a Host Group.
+func (c *Credentials) DeleteHostHostGroupMapping(hostName, hostGroupName string, timeout ...int) (*CreateOrUpdateHostResponse, error) {
+
+	httpTimeout := httpTimeout(timeout)
+
+	hostGroupID, err := c.GetHostGroupID(hostGroupName, httpTimeout)
+	if err != nil {
+		return nil, err
+	}
+
+	hostID, err := c.GetHostID(hostName)
+	if err != nil {
+		return nil, err
+	}
+
+	hostsOnServer, err := c.GetHosts(httpTimeout)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, host := range hostsOnServer.Hits {
+		if host.Name == hostName {
+			if host.HostGroup.Ref == fmt.Sprintf("/host_groups/%d", hostGroupID) {
+
+				hostGroupConfig := map[string]string{}
+
+				config := map[string]interface{}{}
+				config["host_group"] = hostGroupConfig
+
+				apiRequest, err := c.Patch(fmt.Sprintf("/hosts/%d", hostID), config, httpTimeout)
+				if err != nil {
+					return nil, err
+				}
+
+				// Convert the API Response (map[string]interface{}) to a struct
+				var apiResponse CreateOrUpdateHostResponse
+				mapErr := mapstructure.Decode(apiRequest, &apiResponse)
+				if mapErr != nil {
+					return nil, mapErr
+				}
+
+				return &apiResponse, nil
+			}
+
+		}
+
+	}
+
+	return nil, fmt.Errorf("The Host %s is not a member of the %s Host Group", hostName, hostGroupName)
+
+}
