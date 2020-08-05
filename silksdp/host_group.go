@@ -192,6 +192,47 @@ func (c *Credentials) CreateHostGroupVolumeMapping(hostGroupName, volumeName str
 
 }
 
+// CreateHostGroupVolumeGroupMapping will map a Host Group to the provided Volume.
+func (c *Credentials) CreateHostGroupVolumeGroupMapping(hostGroupName, volumeGroupName string, timeout ...int) (*CreateHostVolumeMappingResponse, error) {
+
+	httpTimeout := httpTimeout(timeout)
+
+	hostGroupID, err := c.GetHostGroupID(hostGroupName)
+	if err != nil {
+		return nil, err
+	}
+
+	volumeGroupID, err := c.GetVolumeGroupID(volumeGroupName)
+	if err != nil {
+		return nil, err
+	}
+
+	hostGroupConfig := map[string]interface{}{}
+	hostGroupConfig["ref"] = fmt.Sprintf("/host_groups/%d", hostGroupID)
+
+	volumeGroupConfig := map[string]string{}
+	volumeGroupConfig["ref"] = fmt.Sprintf("/volume_groups/%d", volumeGroupID)
+
+	config := map[string]interface{}{}
+	config["host"] = hostGroupConfig
+	config["volume"] = volumeGroupConfig
+
+	apiRequest, err := c.Post("/mappings", config, httpTimeout)
+	if err != nil {
+		return nil, err
+	}
+
+	// Convert the API Response (map[string]interface{}) to a struct
+	var apiResponse CreateHostVolumeMappingResponse
+	mapErr := mapstructure.Decode(apiRequest, &apiResponse)
+	if mapErr != nil {
+		return nil, mapErr
+	}
+
+	return &apiResponse, nil
+
+}
+
 // GetHostGroupMappings returns information on all Host Group Mappings found on the Silk server.
 //
 // The returned []HostMappingRespons slice only contains information on the Host Groups and not
@@ -273,7 +314,7 @@ func (c *Credentials) DeleteHostGroupMappings(hostGroupName string, timeout ...i
 	return &apiResponse, nil
 }
 
-// DeleteHostGroupVolumeMapping removes a single volume mapping from a Host Group.
+// DeleteHostGroupVolumeMapping removes a single Volume mapping from a Host Group.
 func (c *Credentials) DeleteHostGroupVolumeMapping(hostGroupName, volumeName string, timeout ...int) (*DeleteResponse, error) {
 
 	httpTimeout := httpTimeout(timeout)
@@ -308,6 +349,58 @@ func (c *Credentials) DeleteHostGroupVolumeMapping(hostGroupName, volumeName str
 	// If the mappingID has not been updated (i.e not found on the server) return an error message
 	if mappingID == -1 {
 		return nil, fmt.Errorf("No %s Volume mappings found on the Host Group '%s'", volumeName, hostGroupName)
+	}
+
+	apiRequest, err := c.Delete(fmt.Sprintf("/mappings/%d", mappingID), httpTimeout)
+	if err != nil {
+		return nil, err
+	}
+
+	// Convert the API Response (map[string]interface{}) to a struct
+	var apiResponse DeleteResponse
+	mapErr := mapstructure.Decode(apiRequest, &apiResponse)
+	if mapErr != nil {
+		return nil, mapErr
+	}
+
+	return &apiResponse, nil
+}
+
+// DeleteHostGroupVolumeGroupMapping removes a single Volume Group mapping from a Host Group.
+func (c *Credentials) DeleteHostGroupVolumeGroupMapping(hostGroupName, volumeGroupName string, timeout ...int) (*DeleteResponse, error) {
+
+	httpTimeout := httpTimeout(timeout)
+
+	hostGroupID, err := c.GetHostGroupID(hostGroupName)
+	if err != nil {
+		return nil, err
+	}
+
+	volumeGroupID, err := c.GetVolumeGroupID(volumeGroupName)
+	if err != nil {
+		return nil, err
+	}
+
+	hostGroupMappingsOnServer, err := c.GetHostGroupMappings(httpTimeout)
+	if err != nil {
+		return nil, err
+	}
+
+	// Filter out the user provided volume and host group from the hostMappingsOnServer
+	// results
+	mappingID := -1
+	for _, mapping := range hostGroupMappingsOnServer {
+		if mapping.Volume.Ref == fmt.Sprintf("/volume_groups/%d", volumeGroupID) {
+			if mapping.Host.Ref == fmt.Sprintf("/host_groups/%d", hostGroupID) {
+				mappingID = mapping.ID
+
+			}
+		}
+	}
+
+	// If the mappingID has not been updated (i.e not found on the server) return an error message
+	if mappingID == -1 {
+		return nil, fmt.Errorf("No %s Volume Group mappings found on the Host Group '%s'", volumeGroupName, hostGroupName)
 	}
 
 	apiRequest, err := c.Delete(fmt.Sprintf("/mappings/%d", mappingID), httpTimeout)
