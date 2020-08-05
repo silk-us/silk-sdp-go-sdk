@@ -183,8 +183,8 @@ func (c *Credentials) CreateHostVolumeMapping(hostName, volumeName string, timeo
 
 }
 
-// CreateHostVolumeGroupMapping will map a Host Group to the provided Volume.
-func (c *Credentials) CreateHostVolumeGroupMapping(hostName, volumeGroupName string, timeout ...int) (*CreateHostVolumeMappingResponse, error) {
+// CreateHostVolumeGroupMapping will map all Volumes in a Volume Group to a Host.
+func (c *Credentials) CreateHostVolumeGroupMapping(hostName, volumeGroupName string, timeout ...int) ([]string, error) {
 
 	httpTimeout := httpTimeout(timeout)
 
@@ -193,34 +193,39 @@ func (c *Credentials) CreateHostVolumeGroupMapping(hostName, volumeGroupName str
 		return nil, err
 	}
 
-	volumeGroupID, err := c.GetVolumeGroupID(volumeGroupName)
-	if err != nil {
-		return nil, err
-	}
-
 	hostConfig := map[string]interface{}{}
 	hostConfig["ref"] = fmt.Sprintf("/hosts/%d", hostID)
 
-	volumeGroupConfig := map[string]string{}
-	volumeGroupConfig["ref"] = fmt.Sprintf("/volume_groups/%d", volumeGroupID)
-
-	config := map[string]interface{}{}
-	config["host"] = hostConfig
-	config["volume"] = volumeGroupConfig
-
-	apiRequest, err := c.Post("/mappings", config, httpTimeout)
+	volumesInVolumeGroup, err := c.GetVolumeGroupVolumes(volumeGroupName)
 	if err != nil {
 		return nil, err
 	}
 
-	// Convert the API Response (map[string]interface{}) to a struct
-	var apiResponse CreateHostVolumeMappingResponse
-	mapErr := mapstructure.Decode(apiRequest, &apiResponse)
-	if mapErr != nil {
-		return nil, mapErr
+	volumeGroupConfig := map[string]string{}
+	for _, volume := range volumesInVolumeGroup {
+		volumeID, err := c.GetVolumeID(volume)
+		if err != nil {
+			return nil, err
+		}
+		volumeGroupConfig["ref"] = fmt.Sprintf("/volumes/%d", volumeID)
+
+		config := map[string]interface{}{}
+		config["host"] = hostConfig
+		config["volume"] = volumeGroupConfig
+
+		_, err = c.Post("/mappings", config, httpTimeout)
+		if err != nil {
+			return nil, err
+		}
+
 	}
 
-	return &apiResponse, nil
+	volumeHostMappings, err := c.GetVolumeGroupHostGroupMappings(volumeGroupName)
+	if err != nil {
+		return nil, err
+	}
+
+	return volumeHostMappings, nil
 
 }
 
