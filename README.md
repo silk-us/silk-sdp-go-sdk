@@ -1,4 +1,4 @@
-# Silk SDP Go SDK (Beta)
+# Silk SDP Go SDK
 
 # Installation
 
@@ -42,9 +42,7 @@ func main() {
 }
 ```
 
-# Documentation (Work In Progress)
+# Documentation
 
-
-* [Quick Start Guide](/docs/quick-start.md)
 * [SDK for Go Documentation](https://godoc.org/github.com/silk-us/silk-sdp-go-sdk/silksdp)
 
