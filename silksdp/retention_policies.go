@@ -103,7 +103,7 @@ func (c *Credentials) CreateRetentionPolicy(name string, num_snapshots string, w
 	return &apiResponse, nil
 }
 
-// UpdateVolumeGroup updates the Volume Group with the provided config options.
+// UpdateRetentionPolicy updates the Retention Policy with the provided config options.
 //
 // Valid config keys are: name, num_snapshots, weeks, days, and hours.
 func (c *Credentials) UpdateRetentionPolicy(name string, config map[string]interface{}, timeout ...int) (*CreateOrUpdateRetentionPolicyResponse, error) {
