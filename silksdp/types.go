@@ -348,12 +348,12 @@ type (
 	}
 
 	CreateOrUpdateRetentionPolicyResponse struct {
-		Name         string `mapstructure:"name"`
-		NumSnapshots string `mapstructure:"num_snapshots"`
-		Weeks        string `mapstructure:"weeks"`
-		Days         string `mapstructure:"days"`
-		Hours        string `mapstructure:"hours"`
-		ID           int    `mapstructure:"id"`
+		Name         string      `mapstructure:"name"`
+		NumSnapshots interface{} `mapstructure:"num_snapshots"`
+		Weeks        interface{} `mapstructure:"weeks"`
+		Days         interface{} `mapstructure:"days"`
+		Hours        interface{} `mapstructure:"hours"`
+		ID           int         `mapstructure:"id"`
 	}
 
 	// DeleteResponse holds the response of the Delete base function. The status code will always be 204.
