@@ -353,6 +353,7 @@ type (
 		Weeks        string `mapstructure:"weeks"`
 		Days         string `mapstructure:"days"`
 		Hours        string `mapstructure:"hours"`
+		ID           int    `mapstructure:"id"`
 	}
 
 	// DeleteResponse holds the response of the Delete base function. The status code will always be 204.
