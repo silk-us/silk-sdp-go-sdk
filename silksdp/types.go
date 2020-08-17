@@ -332,6 +332,29 @@ type (
 		Total  int `json:"total"`
 	}
 
+	GetRetentionPolicyResponse struct {
+		Hits []struct {
+			Days                int    `mapstructure:"days"`
+			Hours               int    `mapstructure:"hours"`
+			ID                  int    `mapstructure:"id"`
+			Name                string `mapstructure:"name"`
+			NumSnapshots        int    `mapstructure:"num_snapshots"`
+			SnapshotsUsageCount int    `mapstructure:"snapshots_usage_count"`
+			Weeks               int    `mapstructure:"weeks"`
+		} `mapstructure:"hits"`
+		Limit  int `mapstructure:"limit"`
+		Offset int `mapstructure:"offset"`
+		Total  int `mapstructure:"total"`
+	}
+
+	CreateOrUpdateRetentionPolicyResponse struct {
+		Name         string `mapstructure:"name"`
+		NumSnapshots string `mapstructure:"num_snapshots"`
+		Weeks        string `mapstructure:"weeks"`
+		Days         string `mapstructure:"days"`
+		Hours        string `mapstructure:"hours"`
+	}
+
 	// DeleteResponse holds the response of the Delete base function. The status code will always be 204.
 	DeleteResponse struct {
 		StatusCode int `mapstructure:"status_code"`
