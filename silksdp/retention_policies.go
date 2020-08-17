@@ -89,7 +89,7 @@ func (c *Credentials) CreateRetentionPolicy(name string, num_snapshots string, w
 	config["days"] = days
 	config["hours"] = hours
 
-	apiRequest, err := c.Post("/capacity_policies", config, httpTimeout)
+	apiRequest, err := c.Post("/retention_policies", config, httpTimeout)
 	if err != nil {
 		return nil, err
 	}
