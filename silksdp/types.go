@@ -317,6 +317,25 @@ type (
 	// GetCapacityPolicyResponse holds the response of the GetCapacityPolicyName() function
 	GetCapacityPolicyResponse struct {
 		Hits []struct {
+			CriticalThreshold         int    `mapstructure:"critical_threshold"`
+			ErrorThreshold            int    `mapstructure:"error_threshold"`
+			FullThreshold             int    `mapstructure:"full_threshold"`
+			ID                        int    `mapstructure:"id"`
+			IsDefault                 bool   `mapstructure:"is_default"`
+			Name                      string `mapstructure:"name"`
+			NumSnapshots              int    `mapstructure:"num_snapshots"`
+			SnapshotOverheadThreshold int    `mapstructure:"snapshot_overhead_threshold"`
+			WarningThreshold          int    `mapstructure:"warning_threshold"`
+		} `mapstructure:"hits"`
+		Limit  int `mapstructure:"limit"`
+		Offset int `mapstructure:"offset"`
+		Total  int `mapstructure:"total"`
+	}
+
+	/* GetCapacityPolicyResponse placeholder
+
+	GetCapacityPolicyResponse struct {
+		Hits []struct {
 			CriticalThreshold         int    `json:"critical_threshold"`
 			ErrorThreshold            int    `json:"error_threshold"`
 			FullThreshold             int    `json:"full_threshold"`
@@ -330,6 +349,17 @@ type (
 		Limit  int `json:"limit"`
 		Offset int `json:"offset"`
 		Total  int `json:"total"`
+	}
+	*/
+
+	// CreateOrUpdateCapacityPolicyResponse holds the response for creating a capacity policy
+	CreateOrUpdateCapacityPolicyResponse struct {
+		Name                      string `json:"name"`
+		WarningThreshold          int    `json:"warning_threshold"`
+		ErrorThreshold            int    `json:"error_threshold"`
+		CriticalThreshold         int    `json:"critical_threshold"`
+		FullThreshold             int    `json:"full_threshold"`
+		SnapshotOverheadThreshold int    `json:"snapshot_overhead_threshold"`
 	}
 
 	// GetRetentionPolicyResponse holds the response for GetRetentionPolicy() function
