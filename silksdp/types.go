@@ -332,6 +332,7 @@ type (
 		Total  int `json:"total"`
 	}
 
+	// GetRetentionPolicyResponse holds the response for GetRetentionPolicy() function
 	GetRetentionPolicyResponse struct {
 		Hits []struct {
 			Days                int    `mapstructure:"days"`
@@ -347,6 +348,7 @@ type (
 		Total  int `mapstructure:"total"`
 	}
 
+	// CreateOrUpdateRetentionPolicyResponse holds the data clause for CreateRetentionPolicy() function
 	CreateOrUpdateRetentionPolicyResponse struct {
 		Name         string      `mapstructure:"name"`
 		NumSnapshots interface{} `mapstructure:"num_snapshots"`
