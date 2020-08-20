@@ -53,17 +53,17 @@ func (c *Credentials) GetCapacityPolicyID(name string, timeout ...int) (int, err
 }
 
 // CreateCapacityPolicy creates a new Capacity Policy on the Silk server.
-func (c *Credentials) CreateCapacityPolicy(name string, warningwhreshold int, errorthreshold int, criticalthreshold int, fullthreshold int, snapshotoverheadthreshold int, timeout ...int) (*CreateOrUpdateCapacityPolicyResponse, error) {
+func (c *Credentials) CreateCapacityPolicy(name string, warningthreshold int, errorthreshold int, criticalthreshold int, fullthreshold int, snapshotoverheadthreshold int, timeout ...int) (*CreateOrUpdateCapacityPolicyResponse, error) {
 
 	httpTimeout := httpTimeout(timeout)
 
 	config := map[string]interface{}{}
 	config["name"] = name
-	config["warningwhreshold"] = warningwhreshold
-	config["errorthreshold"] = errorthreshold
-	config["criticalthreshold"] = criticalthreshold
-	config["fullthreshold"] = fullthreshold
-	config["snapshotoverheadthreshold"] = snapshotoverheadthreshold
+	config["warning_threshold"] = warningthreshold
+	config["error_threshold"] = errorthreshold
+	config["critical_threshold"] = criticalthreshold
+	config["full_threshold"] = fullthreshold
+	config["snapshot_overhead_threshold"] = snapshotoverheadthreshold
 
 	apiRequest, err := c.Post("/vg_capacity_policies", config, httpTimeout)
 	if err != nil {
@@ -81,12 +81,12 @@ func (c *Credentials) CreateCapacityPolicy(name string, warningwhreshold int, er
 
 // UpdateCapacityPolicy updates the Capacity Policy with the provided config options.
 //
-// Valid config keys are: "name", "warningwhreshold", "errorthreshold", "criticalthreshold", "fullthreshold", "snapshotoverheadthreshold".
+// Valid config keys are: "name", "warningthreshold", "errorthreshold", "criticalthreshold", "fullthreshold", "snapshotoverheadthreshold".
 func (c *Credentials) UpdateCapacityPolicy(name string, config map[string]interface{}, timeout ...int) (*CreateOrUpdateCapacityPolicyResponse, error) {
 	httpTimeout := httpTimeout(timeout)
 
 	// Validate that the user provided keys are valid for this API
-	validUpdateKeys := []string{"name", "warningwhreshold", "errorthreshold", "criticalthreshold", "fullthreshold", "snapshotoverheadthreshold"}
+	validUpdateKeys := []string{"name", "warningthreshold", "errorthreshold", "criticalthreshold", "fullthreshold", "snapshotoverheadthreshold"}
 	var invalidUserProvidedKeys []string
 	for key := range config {
 
@@ -97,7 +97,7 @@ func (c *Credentials) UpdateCapacityPolicy(name string, config map[string]interf
 
 	// Return an error message if any invalid keys are found
 	if len(invalidUserProvidedKeys) != 0 {
-		return nil, fmt.Errorf("The provided 'config' parameter contains invalid keys. 'name', 'warningwhreshold', 'errorthreshold', 'criticalthreshold', 'fullthreshold', 'snapshotoverheadthreshold' are the only valid choices")
+		return nil, fmt.Errorf("The provided 'config' parameter contains invalid keys. 'name', 'warningthreshold', 'errorthreshold', 'criticalthreshold', 'fullthreshold', 'snapshotoverheadthreshold' are the only valid choices")
 	}
 
 	CapacityPolicyID, err := c.GetCapacityPolicyID(name, httpTimeout)
