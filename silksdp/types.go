@@ -354,12 +354,12 @@ type (
 
 	// CreateOrUpdateCapacityPolicyResponse holds the response for creating a capacity policy
 	CreateOrUpdateCapacityPolicyResponse struct {
-		Name                      string `json:"name"`
-		WarningThreshold          int    `json:"warning_threshold"`
-		ErrorThreshold            int    `json:"error_threshold"`
-		CriticalThreshold         int    `json:"critical_threshold"`
-		FullThreshold             int    `json:"full_threshold"`
-		SnapshotOverheadThreshold int    `json:"snapshot_overhead_threshold"`
+		Name                      string `mapstructure:"name"`
+		WarningThreshold          int    `mapstructure:"warning_threshold"`
+		ErrorThreshold            int    `mapstructure:"error_threshold"`
+		CriticalThreshold         int    `mapstructure:"critical_threshold"`
+		FullThreshold             int    `mapstructure:"full_threshold"`
+		SnapshotOverheadThreshold int    `mapstructure:"snapshot_overhead_threshold"`
 		ID                        int    `mapstructure:"id"`
 	}
 
