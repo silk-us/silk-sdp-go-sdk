@@ -105,7 +105,7 @@ func (c *Credentials) UpdateCapacityPolicy(name string, config map[string]interf
 		return nil, err
 	}
 
-	apiRequest, err := c.Patch(fmt.Sprintf("/retention_policies/%d", CapacityPolicyID), config, httpTimeout)
+	apiRequest, err := c.Patch(fmt.Sprintf("/vg_capacity_policies/%d", CapacityPolicyID), config, httpTimeout)
 	if err != nil {
 		return nil, err
 	}
