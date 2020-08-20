@@ -360,6 +360,7 @@ type (
 		CriticalThreshold         int    `json:"critical_threshold"`
 		FullThreshold             int    `json:"full_threshold"`
 		SnapshotOverheadThreshold int    `json:"snapshot_overhead_threshold"`
+		ID                        int    `mapstructure:"id"`
 	}
 
 	// GetRetentionPolicyResponse holds the response for GetRetentionPolicy() function
