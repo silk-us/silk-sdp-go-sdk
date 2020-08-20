@@ -50,6 +50,7 @@ func (c *Credentials) DeleteRetentionPolicy(name string, timeout ...int) (*Delet
 
 }
 
+// GetRetentionPolicyID is a quick function for grabbing a retention policy object ID
 func (c *Credentials) GetRetentionPolicyID(name string, timeout ...int) (int, error) {
 
 	httpTimeout := httpTimeout(timeout)
@@ -78,13 +79,13 @@ func (c *Credentials) GetRetentionPolicyID(name string, timeout ...int) (int, er
 }
 
 // CreateRetentionPolicy creates a new Retention Policy on the Silk server.
-func (c *Credentials) CreateRetentionPolicy(name string, num_snapshots string, weeks string, days string, hours string, timeout ...int) (*CreateOrUpdateRetentionPolicyResponse, error) {
+func (c *Credentials) CreateRetentionPolicy(name string, numsnapshots string, weeks string, days string, hours string, timeout ...int) (*CreateOrUpdateRetentionPolicyResponse, error) {
 
 	httpTimeout := httpTimeout(timeout)
 
 	config := map[string]interface{}{}
 	config["name"] = name
-	config["num_snapshots"] = num_snapshots
+	config["num_snapshots"] = numsnapshots
 	config["weeks"] = weeks
 	config["days"] = days
 	config["hours"] = hours
