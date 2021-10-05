@@ -33,7 +33,6 @@ func (c *Credentials) CreateVolume(name string, sizeInGb int, volumeGroupName st
 	config["vmware_support"] = vmware
 	config["description"] = description
 	config["read_only"] = readOnly
-	config["scsi_sn"] = scsi_sn
 
 	apiRequest, err := c.Post("/volumes", config, httpTimeout)
 	if err != nil {
