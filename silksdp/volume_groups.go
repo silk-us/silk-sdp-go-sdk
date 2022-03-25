@@ -272,9 +272,9 @@ func (c *Credentials) GetVolumeGroupVolumes(name string, timeout ...int) ([]stri
 
 	}
 
-	if len(volumes) == 0 {
-		return nil, fmt.Errorf("The Volume Group '%s' does not contain any Volumes", name)
-	}
+	// if len(volumes) == 0 {
+	// 	return nil, fmt.Errorf("The Volume Group '%s' does not contain any Volumes", name)
+	// }
 
 	return volumes, nil
 
