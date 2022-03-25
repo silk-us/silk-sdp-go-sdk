@@ -62,6 +62,11 @@ func (c *Credentials) GetVolumeGroups(timeout ...int) (*GetVolumeGroupsResponse,
 func (c *Credentials) UpdateVolumeGroup(name string, config map[string]interface{}, timeout ...int) (*CreateOrUpdateVolumeGroupResponse, error) {
 	httpTimeout := httpTimeout(timeout)
 
+	if _, ok := config["quotaInGb"]; ok {
+		config["quota"] = config["quotaInGb"].(int) * 1024 * 1024
+		delete(config, "quotaInGb")
+	}
+
 	// Validate that the user provided keys are valid for this API
 	validUpdateKeys := []string{"name", "quota", "capacityPolicy", "description"}
 	var invalidUserProvidedKeys []string
