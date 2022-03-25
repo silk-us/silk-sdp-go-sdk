@@ -209,9 +209,9 @@ func (c *Credentials) GetVolumeHostMappings(volumeName string, timeout ...int) (
 	}
 
 	// If the mappingID has not been updated (i.e not found on the server) return an error message
-	if len(hostName) == 0 {
-		return nil, fmt.Errorf("No Host Mappings found on the Volume '%s'", volumeName)
-	}
+	// if len(hostName) == 0 {
+	// 	return nil, fmt.Errorf("No Host Mappings found on the Volume '%s'", volumeName)
+	// }
 
 	return hostName, nil
 }
@@ -259,9 +259,9 @@ func (c *Credentials) GetVolumeHostGroupMappings(volumeName string, timeout ...i
 	}
 
 	// If the mappingID has not been updated (i.e not found on the server) return an error message
-	if len(hostName) == 0 {
-		return nil, fmt.Errorf("No Host Mappings found on the Volume '%s'", volumeName)
-	}
+	// if len(hostName) == 0 {
+	// 	return nil, fmt.Errorf("No Host Mappings found on the Volume '%s'", volumeName)
+	// }
 
 	return hostName, nil
 }
@@ -309,9 +309,9 @@ func (c *Credentials) GetVolumeGroupHostGroupMappings(volumeGroupName string, ti
 	}
 
 	// If the mappingID has not been updated (i.e not found on the server) return an error message
-	if len(hostName) == 0 {
-		return nil, fmt.Errorf("No Host Mappings found on the Volume Group '%s'", volumeGroupName)
-	}
+	// if len(hostName) == 0 {
+	// 	return nil, fmt.Errorf("No Host Mappings found on the Volume Group '%s'", volumeGroupName)
+	// }
 
 	return hostName, nil
 }
