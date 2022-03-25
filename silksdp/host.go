@@ -132,13 +132,13 @@ func (c *Credentials) CreateHostVolumeMapping(hostName, volumeName string, timeo
 
 	httpTimeout := httpTimeout(timeout)
 
-	hostsOnServer, err := c.GetHosts(httpTimeout)
+	allHosts, err := c.GetHosts(httpTimeout)
 	if err != nil {
 		return nil, err
 	}
 
 	// Validates that the provided host is not part of a Host Group which would prevent the host being added.
-	for _, host := range hostsOnServer.Hits {
+	for _, host := range allHosts.Hits {
 		if host.Name == hostName {
 			if host.IsPartOfGroup == true {
 				return nil, fmt.Errorf("Host '%s' is a member of a Host Group and can not individually be mapped to a volume", hostName)
@@ -201,17 +201,17 @@ func (c *Credentials) CreateHostVolumeGroupMapping(hostName, volumeGroupName str
 		return nil, err
 	}
 
-	volumeGroupConfig := map[string]string{}
 	for _, volume := range volumesInVolumeGroup {
 		volumeID, err := c.GetVolumeID(volume)
 		if err != nil {
 			return nil, err
 		}
-		volumeGroupConfig["ref"] = fmt.Sprintf("/volumes/%d", volumeID)
+		volumeConfig := map[string]string{}
+		volumeConfig["ref"] = fmt.Sprintf("/volumes/%d", volumeID)
 
 		config := map[string]interface{}{}
 		config["host"] = hostConfig
-		config["volume"] = volumeGroupConfig
+		config["volume"] = volumeConfig
 
 		_, err = c.Post("/mappings", config, httpTimeout)
 		if err != nil {
@@ -702,9 +702,7 @@ func (c *Credentials) DeleteHostIndividualIQN(hostName, iqn string, timeout ...i
 	for _, host := range hostIQNs {
 		if host.Iqn == iqn {
 			iqnToDelete = append(iqnToDelete, host.ID)
-
 		}
-
 	}
 
 	// If the iqnToDelete slice is empty (i.e no PWWN mappings found for the host) return an error message
@@ -717,7 +715,6 @@ func (c *Credentials) DeleteHostIndividualIQN(hostName, iqn string, timeout ...i
 		if err != nil {
 			return nil, err
 		}
-
 	}
 
 	// Since we are ignoring the response of each of the Delete calls above,
