@@ -63,7 +63,6 @@ func (c *Credentials) GetVolumes(timeout ...int) (*GetVolumesResponse, error) {
 	var apiResponse GetVolumesResponse
 	mapErr := mapstructure.Decode(apiRequest, &apiResponse)
 	if mapErr != nil {
-
 		return nil, mapErr
 	}
 
@@ -81,7 +80,6 @@ func (c *Credentials) UpdateVolume(name string, config map[string]interface{}, t
 	validUpdateKeys := []string{"name", "size", "description", "volume_group", "read_only"}
 	var invalidUserProvidedKeys []string
 	for key := range config {
-
 		if c.stringInSlice(validUpdateKeys, key) == false {
 			invalidUserProvidedKeys = append(invalidUserProvidedKeys, key)
 		}
@@ -120,6 +118,21 @@ func (c *Credentials) DeleteVolume(name string, timeout ...int) (*DeleteResponse
 	volumeID, err := c.GetVolumeID(name)
 	if err != nil {
 		return nil, err
+	}
+
+	// Remove Host mappings before remove volume
+	hostMappings, err := c.GetVolumeHostMappings(name, httpTimeout)
+	if len(hostMappings) > 0 {
+		for _, hostName := range hostMappings {
+			c.DeleteHostVolumeMapping(hostName, name, httpTimeout)
+		}
+	}
+	// Remove Host group mappings before remove volume
+	hostGroupMappings, err := c.GetVolumeHostGroupMappings(name, httpTimeout)
+	if len(hostMappings) > 0 {
+		for _, hostGroupName := range hostGroupMappings {
+			c.DeleteHostGroupVolumeMapping(hostGroupName, name, httpTimeout)
+		}
 	}
 
 	apiRequest, err := c.Delete(fmt.Sprintf("/volumes/%d", volumeID), httpTimeout)
