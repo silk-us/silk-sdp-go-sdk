@@ -60,14 +60,14 @@ func (c *Credentials) GetVolumes(timeout ...int) (*GetVolumesResponse, error) {
 	}
 
 	// Convert the API Response (map[string]interface{}) to a struct
-	var createVolume GetVolumesResponse
-	mapErr := mapstructure.Decode(apiRequest, &createVolume)
+	var apiResponse GetVolumesResponse
+	mapErr := mapstructure.Decode(apiRequest, &apiResponse)
 	if mapErr != nil {
 
 		return nil, mapErr
 	}
 
-	return &createVolume, nil
+	return &apiResponse, nil
 }
 
 // UpdateVolume updates the configuration of a Volume on the Silk server.
