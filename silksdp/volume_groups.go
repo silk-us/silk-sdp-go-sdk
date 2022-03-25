@@ -142,26 +142,26 @@ func (c *Credentials) GetVolumeGroupID(name string, timeout ...int) (int, error)
 
 	httpTimeout := httpTimeout(timeout)
 
-	objectsOnServer, err := c.GetVolumeGroups(httpTimeout)
+	allVolumeGroups, err := c.GetVolumeGroups(httpTimeout)
 	if err != nil {
 		return 0, err
 	}
 
-	// Set objectID to a value (-1) that can not be returned by the server
-	objectID := -1
-	for _, object := range objectsOnServer.Hits {
-		if object.Name == name {
-			objectID = object.ID
+	// Set volumeGroupID to a value (-1) that can not be returned by the server
+	volumeGroupID := -1
+	for _, volumeGroup := range allVolumeGroups.Hits {
+		if volumeGroup.Name == name {
+			volumeGroupID = volumeGroup.ID
 		}
 
 	}
 
-	// If the objectID has not been updated (i.e not found on the server) return an error message
-	if objectID == -1 {
+	// If the volumeGroupID has not been updated (i.e not found on the server) return an error message
+	if volumeGroupID == -1 {
 		return 0, fmt.Errorf("The server does not contain a Volume Group named '%s'", name)
 	}
 
-	return objectID, nil
+	return volumeGroupID, nil
 
 }
 
@@ -182,19 +182,19 @@ func (c *Credentials) GetCapacityPolicyName(id int, timeout ...int) (string, err
 		return "", mapErr
 	}
 
-	objectName := ""
-	for _, object := range apiResponse.Hits {
-		if object.ID == id {
-			objectName = object.Name
+	capacityPolicyName := ""
+	for _, capacityPolicy := range apiResponse.Hits {
+		if capacityPolicy.ID == id {
+			capacityPolicyName = capacityPolicy.Name
 		}
 	}
 
-	// If the objectID has not been updated (i.e not found on the server) return an error message
-	if objectName == "" {
+	// If the capacityPolicyName has not been updated (i.e not found on the server) return an error message
+	if capacityPolicyName == "" {
 		return "", fmt.Errorf("The server does not contain a Capacity Policy with the ID of '%d'", id)
 	}
 
-	return objectName, nil
+	return capacityPolicyName, nil
 }
 
 // GetVolumeGroupHostMappings returns all Hosts that are mapped to the provided Volume Group.
@@ -257,19 +257,16 @@ func (c *Credentials) GetVolumeGroupVolumes(name string, timeout ...int) ([]stri
 		return nil, err
 	}
 
-	volumesOnServer, err := c.GetVolumes(httpTimeout)
+	allVolumes, err := c.GetVolumes(httpTimeout)
 	if err != nil {
 		return nil, err
 	}
 
-	// Set objectID to a value (-1) that can not be returned by the server
 	volumes := []string{}
-	for _, volume := range volumesOnServer.Hits {
-
+	for _, volume := range allVolumes.Hits {
 		if string(volume.VolumeGroup.Ref) == fmt.Sprintf("/volume_groups/%d", volumeGroupID) {
 			volumes = append(volumes, volume.Name)
 		}
-
 	}
 
 	// if len(volumes) == 0 {
