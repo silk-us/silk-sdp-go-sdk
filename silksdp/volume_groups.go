@@ -226,10 +226,10 @@ func (c *Credentials) GetVolumeGroupHostMappings(volumeGroupName string, timeout
 
 	}
 
-	// If the mappingID has not been updated (i.e not found on the server) return an error message
-	if len(hostName) == 0 {
-		return nil, fmt.Errorf("No Host Mappings found on the Volume Group '%s'", volumeGroupName)
-	}
+	// // If the mappingID has not been updated (i.e not found on the server) return an error message
+	// if len(hostName) == 0 {
+	// 	return nil, fmt.Errorf("No Host Mappings found on the Volume Group '%s'", volumeGroupName)
+	// }
 
 	return hostName, nil
 }
