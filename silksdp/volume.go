@@ -156,27 +156,25 @@ func (c *Credentials) GetVolumeID(name string, timeout ...int) (int, error) {
 
 	httpTimeout := httpTimeout(timeout)
 
-	objectsOnServer, err := c.GetVolumes(httpTimeout)
+	volumes, err := c.GetVolumes(httpTimeout)
 	if err != nil {
 		return 0, err
 	}
 
-	// Set objectID to a value (-1) that can not be returned by the server
-	objectID := -1
-	for _, object := range objectsOnServer.Hits {
-		if object.Name == name {
-			objectID = object.ID
+	// Set volumeID to a value (-1) that can not be returned by the server
+	volumeID := -1
+	for _, volume := range volumes.Hits {
+		if volume.Name == name {
+			volumeID = volume.ID
 		}
-
 	}
 
-	// If the objectID has not been updated (i.e not found on the server) return an error message
-	if objectID == -1 {
+	// If the volumeID has not been updated (i.e not found on the server) return an error message
+	if volumeID == -1 {
 		return 0, fmt.Errorf("The server does not contain a Volume named '%s'", name)
 	}
 
-	return objectID, nil
-
+	return volumeID, nil
 }
 
 // GetVolumeHostMappings returns all Hosts that are mapped to the provided Volume.
