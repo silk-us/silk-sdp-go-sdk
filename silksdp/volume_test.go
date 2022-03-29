@@ -83,9 +83,11 @@ func Test_DeleteVolume(t *testing.T) {
 func Test_LifecycleVolume(t *testing.T) {
 	// Use ConnectEnv to look up the Silk Server, Username, and Password
 	// using environment variables
+	Test_CreateVolumeGroup(t)
 	Test_CreateVolume(t)
 	Test_GetVolumes(t)
 	Test_UpdateVolume(t)
 	Test_GetVolumes(t)
 	Test_DeleteVolume(t)
+	Test_DeleteVolumeGroup(t)
 }
