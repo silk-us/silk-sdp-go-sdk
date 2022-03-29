@@ -23,7 +23,7 @@ func Test_CreateVolume(t *testing.T) {
 	if err != nil {
 		t.Errorf("Failed to create volume: %v", err)
 	}
-	t.Errorf("Volume created: %v", createVolume)
+	t.Logf("Volume created: %v", createVolume)
 	// fmt.Println(createVolume)
 }
 
@@ -39,7 +39,7 @@ func Test_GetVolumes(t *testing.T) {
 	if err != nil {
 		t.Errorf("Failed to fetch all volumes: %v", err)
 	}
-	t.Errorf("Volume list: %v", getVolumes)
+	t.Logf("Volume list: %v", getVolumes)
 }
 
 func Test_UpdateVolume(t *testing.T) {
@@ -53,13 +53,14 @@ func Test_UpdateVolume(t *testing.T) {
 	volumeName := "TestVolumeName"
 
 	config := map[string]interface{}{}
-	config["name"] = "NewTestVolumeName"
+	config["description"] = "New description"
+	// config["name"] = "NewTestVolumeName"
 
 	updateVolume, err := silk.UpdateVolume(volumeName, config)
 	if err != nil {
 		t.Errorf("Failed to update volume: %v", err)
 	}
-	t.Errorf("Volume updated: %v", updateVolume)
+	t.Logf("Volume updated: %v", updateVolume)
 }
 
 func Test_DeleteVolume(t *testing.T) {
@@ -76,7 +77,7 @@ func Test_DeleteVolume(t *testing.T) {
 	if err != nil {
 		t.Errorf("Failed to delete volume: %v", err)
 	}
-	t.Errorf("Volume deleted: %v", deleteVolume)
+	t.Logf("Volume deleted: %v", deleteVolume)
 }
 
 func Test_LifecycleVolume(t *testing.T) {
