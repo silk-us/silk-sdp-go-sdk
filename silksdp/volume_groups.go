@@ -113,14 +113,6 @@ func (c *Credentials) DeleteVolumeGroup(name string, timeout ...int) (*DeleteRes
 		return nil, err
 	}
 
-	// Remove Host mappings before remove volume group
-	hostMappings, err := c.GetVolumeGroupHostMappings(name, httpTimeout)
-	if len(hostMappings) > 0 {
-		for _, hostName := range hostMappings {
-			c.DeleteHostGroupVolumeGroupMapping(hostName, name, httpTimeout)
-		}
-	}
-
 	apiRequest, err := c.Delete(fmt.Sprintf("/volume_groups/%d", volumeGroupID), httpTimeout)
 	if err != nil {
 		return nil, err
