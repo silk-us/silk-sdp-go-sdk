@@ -151,6 +151,31 @@ func (c *Credentials) GetHostGroupID(name string, timeout ...int) (int, error) {
 
 }
 
+// GetHostGroupName provides the name of a Host Group given its ID.
+func (c *Credentials) GetHostGroupName(id int, timeout ...int) (string, error) {
+
+	httpTimeout := httpTimeout(timeout)
+
+	apiRequest, err := c.Get(fmt.Sprintf("/host_groups?id__in=%d", id), httpTimeout)
+	if err != nil {
+		return "", err
+	}
+
+	// Convert the API Response (map[string]interface{}) to a struct
+	var apiResponse GetHostGroupsResponse
+	mapErr := mapstructure.Decode(apiRequest, &apiResponse)
+	if mapErr != nil {
+		return "", mapErr
+	}
+
+	for _, hostGroup := range apiResponse.Hits {
+		return hostGroup.Name, nil
+	}
+
+	return "", fmt.Errorf("Did not found hostgroup with id=%d", id)
+
+}
+
 // CreateHostGroupVolumeMapping will map a Host to the provided Volume.
 func (c *Credentials) CreateHostGroupVolumeMapping(hostGroupName, volumeName string, timeout ...int) (*CreateHostVolumeMappingResponse, error) {
 
