@@ -69,6 +69,25 @@ func (c *Credentials) GetVolumes(timeout ...int) (*GetVolumesResponse, error) {
 	return &apiResponse, nil
 }
 
+func (c *Credentials) GetVolumeName(id int, timeout ...int) (*GetVolumesResponse, error) {
+
+	httpTimeout := httpTimeout(timeout)
+
+	apiRequest, err := c.Get(fmt.Sprintf("/volumes?id__in=%v", id), httpTimeout)
+	if err != nil {
+		return nil, err
+	}
+
+	// Convert the API Response (map[string]interface{}) to a struct
+	var apiResponse GetVolumesResponse
+	mapErr := mapstructure.Decode(apiRequest, &apiResponse)
+	if mapErr != nil {
+		return nil, mapErr
+	}
+
+	return &apiResponse, nil
+}
+
 // UpdateVolume updates the configuration of a Volume on the Silk server.
 //
 // Valid keys for the config are: `name`, `size`, `description`, `volume_group`, and `read_only`.
