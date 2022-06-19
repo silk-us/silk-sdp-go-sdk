@@ -1,2 +1,6 @@
 # ignore development files
 dev.go
+tests.md
+
+# Dependency directories
+vendor/

@@ -60,14 +60,32 @@ func (c *Credentials) GetVolumes(timeout ...int) (*GetVolumesResponse, error) {
 	}
 
 	// Convert the API Response (map[string]interface{}) to a struct
-	var createVolume GetVolumesResponse
-	mapErr := mapstructure.Decode(apiRequest, &createVolume)
+	var apiResponse GetVolumesResponse
+	mapErr := mapstructure.Decode(apiRequest, &apiResponse)
 	if mapErr != nil {
-
 		return nil, mapErr
 	}
 
-	return &createVolume, nil
+	return &apiResponse, nil
+}
+
+func (c *Credentials) GetVolumeName(id int, timeout ...int) (*GetVolumesResponse, error) {
+
+	httpTimeout := httpTimeout(timeout)
+
+	apiRequest, err := c.Get(fmt.Sprintf("/volumes?id__in=%v", id), httpTimeout)
+	if err != nil {
+		return nil, err
+	}
+
+	// Convert the API Response (map[string]interface{}) to a struct
+	var apiResponse GetVolumesResponse
+	mapErr := mapstructure.Decode(apiRequest, &apiResponse)
+	if mapErr != nil {
+		return nil, mapErr
+	}
+
+	return &apiResponse, nil
 }
 
 // UpdateVolume updates the configuration of a Volume on the Silk server.
@@ -81,7 +99,6 @@ func (c *Credentials) UpdateVolume(name string, config map[string]interface{}, t
 	validUpdateKeys := []string{"name", "size", "description", "volume_group", "read_only"}
 	var invalidUserProvidedKeys []string
 	for key := range config {
-
 		if c.stringInSlice(validUpdateKeys, key) == false {
 			invalidUserProvidedKeys = append(invalidUserProvidedKeys, key)
 		}
@@ -122,6 +139,21 @@ func (c *Credentials) DeleteVolume(name string, timeout ...int) (*DeleteResponse
 		return nil, err
 	}
 
+	// Remove Host mappings before remove volume
+	hostMappings, err := c.GetVolumeHostMappings(name, httpTimeout)
+	if len(hostMappings) > 0 {
+		for _, hostName := range hostMappings {
+			c.DeleteHostVolumeMapping(hostName, name, httpTimeout)
+		}
+	}
+	// Remove Host group mappings before remove volume
+	hostGroupMappings, err := c.GetVolumeHostGroupMappings(name, httpTimeout)
+	if len(hostGroupMappings) > 0 {
+		for _, hostGroupName := range hostGroupMappings {
+			c.DeleteHostGroupVolumeMapping(hostGroupName, name, httpTimeout)
+		}
+	}
+
 	apiRequest, err := c.Delete(fmt.Sprintf("/volumes/%d", volumeID), httpTimeout)
 	if err != nil {
 		return nil, err
@@ -143,27 +175,25 @@ func (c *Credentials) GetVolumeID(name string, timeout ...int) (int, error) {
 
 	httpTimeout := httpTimeout(timeout)
 
-	objectsOnServer, err := c.GetVolumes(httpTimeout)
+	volumes, err := c.GetVolumes(httpTimeout)
 	if err != nil {
 		return 0, err
 	}
 
-	// Set objectID to a value (-1) that can not be returned by the server
-	objectID := -1
-	for _, object := range objectsOnServer.Hits {
-		if object.Name == name {
-			objectID = object.ID
+	// Set volumeID to a value (-1) that can not be returned by the server
+	volumeID := -1
+	for _, volume := range volumes.Hits {
+		if volume.Name == name {
+			volumeID = volume.ID
 		}
-
 	}
 
-	// If the objectID has not been updated (i.e not found on the server) return an error message
-	if objectID == -1 {
+	// If the volumeID has not been updated (i.e not found on the server) return an error message
+	if volumeID == -1 {
 		return 0, fmt.Errorf("The server does not contain a Volume named '%s'", name)
 	}
 
-	return objectID, nil
-
+	return volumeID, nil
 }
 
 // GetVolumeHostMappings returns all Hosts that are mapped to the provided Volume.
@@ -209,9 +239,9 @@ func (c *Credentials) GetVolumeHostMappings(volumeName string, timeout ...int) (
 	}
 
 	// If the mappingID has not been updated (i.e not found on the server) return an error message
-	if len(hostName) == 0 {
-		return nil, fmt.Errorf("No Host Mappings found on the Volume '%s'", volumeName)
-	}
+	// if len(hostName) == 0 {
+	// 	return nil, fmt.Errorf("No Host Mappings found on the Volume '%s'", volumeName)
+	// }
 
 	return hostName, nil
 }
@@ -259,9 +289,9 @@ func (c *Credentials) GetVolumeHostGroupMappings(volumeName string, timeout ...i
 	}
 
 	// If the mappingID has not been updated (i.e not found on the server) return an error message
-	if len(hostName) == 0 {
-		return nil, fmt.Errorf("No Host Mappings found on the Volume '%s'", volumeName)
-	}
+	// if len(hostName) == 0 {
+	// 	return nil, fmt.Errorf("No Host Mappings found on the Volume '%s'", volumeName)
+	// }
 
 	return hostName, nil
 }
@@ -309,9 +339,9 @@ func (c *Credentials) GetVolumeGroupHostGroupMappings(volumeGroupName string, ti
 	}
 
 	// If the mappingID has not been updated (i.e not found on the server) return an error message
-	if len(hostName) == 0 {
-		return nil, fmt.Errorf("No Host Mappings found on the Volume Group '%s'", volumeGroupName)
-	}
+	// if len(hostName) == 0 {
+	// 	return nil, fmt.Errorf("No Host Mappings found on the Volume Group '%s'", volumeGroupName)
+	// }
 
 	return hostName, nil
 }
