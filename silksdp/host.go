@@ -930,3 +930,25 @@ func (c *Credentials) DeleteHostHostGroupMapping(hostName, hostGroupName string,
 	// return nil, fmt.Errorf("The Host %s is not a member of the %s Host Group", hostName, hostGroupName)
 	return nil,nil
 }
+
+// GetHostByName submits a strict API query for host objects of a specific name.
+func (c *Credentials) GetHostByName(hostname string, timeout ...int) (*GetHostsResponse, error) {
+
+	httpTimeout := httpTimeout(timeout)
+
+	enduri := ("hosts?name__contains=" + hostname)
+
+	apiRequest, err := c.Get(enduri, httpTimeout)
+	if err != nil {
+		return nil, err
+	}
+
+	// Convert the API Response (map[string]interface{}) to a struct
+	var apiResponse GetHostsResponse
+	mapErr := mapstructure.Decode(apiRequest, &apiResponse)
+	if mapErr != nil {
+		return nil, mapErr
+	}
+
+	return &apiResponse, nil
+}
