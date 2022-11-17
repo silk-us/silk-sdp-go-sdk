@@ -549,3 +549,24 @@ func (c *Credentials) GetHostGroupHosts(name string, timeout ...int) ([]string, 
 
 	return hostsInHostGroup, nil
 }
+// GetHostGroupByName returns information on all Host Groups found on the Silk server.
+func (c *Credentials) GetHostGroupByName(hostgroupname string, timeout ...int) (*GetHostGroupsResponse, error) {
+
+	httpTimeout := httpTimeout(timeout)
+
+	enduri := ("/host_groups?name__contains=" + hostgroupname)
+
+	apiRequest, err := c.Get(enduri, httpTimeout)
+	if err != nil {
+		return nil, err
+	}
+
+	// Convert the API Response (map[string]interface{}) to a struct
+	var apiResponse GetHostGroupsResponse
+	mapErr := mapstructure.Decode(apiRequest, &apiResponse)
+	if mapErr != nil {
+		return nil, mapErr
+	}
+
+	return &apiResponse, nil
+}

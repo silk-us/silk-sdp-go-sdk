@@ -145,3 +145,22 @@ func (c *Credentials) UpdateRetentionPolicy(name string, config map[string]inter
 	return &apiResponse, nil
 
 }
+// GetRetentionPolicyByName returns information on all Retention Policies found on the Silk server.
+func (c *Credentials) GetRetentionPolicyByName(retentionpolicyname string, timeout ...int) (*GetRetentionPolicyResponse, error) {
+	httpTimeout := httpTimeout(timeout)
+
+	enduri := ("/retention_policies?name__contains=" + retentionpolicyname)
+
+	apiRequest, err := c.Get(enduri, httpTimeout)
+	if err != nil {
+		return nil, err
+	}
+	// Convert the API Response (map[string]interface{}) to a struct
+	var apiResponse GetRetentionPolicyResponse
+	mapErr := mapstructure.Decode(apiRequest, &apiResponse)
+	if mapErr != nil {
+		return nil, mapErr
+	}
+
+	return &apiResponse, nil
+}

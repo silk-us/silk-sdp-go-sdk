@@ -936,7 +936,7 @@ func (c *Credentials) GetHostByName(hostname string, timeout ...int) (*GetHostsR
 
 	httpTimeout := httpTimeout(timeout)
 
-	enduri := ("hosts?name__contains=" + hostname)
+	enduri := ("/hosts?name__contains=" + hostname)
 
 	apiRequest, err := c.Get(enduri, httpTimeout)
 	if err != nil {

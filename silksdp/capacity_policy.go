@@ -146,3 +146,22 @@ func (c *Credentials) DeleteCapacityPolicy(name string, timeout ...int) (*Delete
 	return &apiResponse, nil
 
 }
+// GetCapacityPolicyByName returns information on all Capacity Policys found on the Silk server.
+func (c *Credentials) GetCapacityPolicyByName(capacitypolicyname string, timeout ...int) (*GetCapacityPolicyResponse, error) {
+	httpTimeout := httpTimeout(timeout)
+
+	enduri := ("/vg_capacity_policies?name__contains=" + capacitypolicyname)
+
+	apiRequest, err := c.Get(enduri, httpTimeout)
+	if err != nil {
+		return nil, err
+	}
+	// Convert the API Response (map[string]interface{}) to a struct
+	var apiResponse GetCapacityPolicyResponse
+	mapErr := mapstructure.Decode(apiRequest, &apiResponse)
+	if mapErr != nil {
+		return nil, mapErr
+	}
+
+	return &apiResponse, nil
+}

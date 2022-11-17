@@ -345,3 +345,26 @@ func (c *Credentials) GetVolumeGroupHostGroupMappings(volumeGroupName string, ti
 
 	return hostName, nil
 }
+
+// GetVolumeByName submits a strict API query for host objects of a specific name.
+func (c *Credentials) GetVolumeByName(volumename string, timeout ...int) (*GetVolumesResponse, error) {
+
+	httpTimeout := httpTimeout(timeout)
+
+	enduri := ("/volumes?name__contains=" + volumename)
+
+	apiRequest, err := c.Get(enduri, httpTimeout)
+	if err != nil {
+		return nil, err
+	}
+
+	// Convert the API Response (map[string]interface{}) to a struct
+	var apiResponse GetVolumesResponse
+	mapErr := mapstructure.Decode(apiRequest, &apiResponse)
+	if mapErr != nil {
+		return nil, mapErr
+	}
+
+	return &apiResponse, nil
+}
+

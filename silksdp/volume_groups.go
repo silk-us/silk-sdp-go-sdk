@@ -268,3 +268,24 @@ func (c *Credentials) GetVolumeGroupVolumes(name string, timeout ...int) ([]stri
 	return volumes, nil
 
 }
+// GetVolumeGroupByName returns information on all Volume Groups found on the Silk server.
+func (c *Credentials) GetVolumeGroupByName(volumegroupname string, timeout ...int) (*GetVolumeGroupsResponse, error) {
+
+	httpTimeout := httpTimeout(timeout)
+
+	enduri := ("/volume_groups?name__contains=" + volumegroupname)
+
+	apiRequest, err := c.Get(enduri, httpTimeout)
+	if err != nil {
+		return nil, err
+	}
+
+	// Convert the API Response (map[string]interface{}) to a struct
+	var apiResponse GetVolumeGroupsResponse
+	mapErr := mapstructure.Decode(apiRequest, &apiResponse)
+	if mapErr != nil {
+		return nil, mapErr
+	}
+
+	return &apiResponse, nil
+}
