@@ -50,11 +50,11 @@ func Connect(server, username, password string) *Credentials {
 // ConnectEnv is the preferred method to initialize a new API client by attempting to read the
 // following environment variables:
 //
-//  SILK_SDP_SERVER
+//	SILK_SDP_SERVER
 //
-//  SILK_SDP_USERNAME
+//	SILK_SDP_USERNAME
 //
-//  SILK_SDP_PASSWORD
+//	SILK_SDP_PASSWORD
 func ConnectEnv() (*Credentials, error) {
 
 	server, ok := os.LookupEnv("SILK_SDP_SERVER")
@@ -124,6 +124,10 @@ func (c *Credentials) makeHTTPCall(callType, apiEndpoint string, config interfac
 	} else if err != nil {
 		return nil, err
 	}
+
+	// Place a 1 second pause here - Post request but prior to returning the response.
+	duration := time.Second // Pause for 1 second.
+	time.Sleep(duration)
 
 	body, err := ioutil.ReadAll(apiRequest.Body)
 
