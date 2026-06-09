@@ -392,28 +392,37 @@ type (
 	// GetVolumeGroupSnapshotResponse Volume Group Snapshot GET response
 	GetVolumeGroupSnapshotResponse struct {
 		Hits []struct {
-			CreationTime                int         `mapstructure:"creation_time"`
-			DataCreationTime            interface{} `mapstructure:"data_creation_time"`
-			Description                 interface{} `mapstructure:"description"`
-			GenerationNumber            interface{} `mapstructure:"generation_number"`
-			ID                          int         `mapstructure:"id"`
-			IsApplicationConsistent     bool        `mapstructure:"is_application_consistent"`
-			IsAutoDeleteable            bool        `mapstructure:"is_auto_deleteable"`
-			IsDeleted                   bool        `mapstructure:"is_deleted"`
-			IsExistOnPeer               bool        `mapstructure:"is_exist_on_peer"`
-			IsExposable                 bool        `mapstructure:"is_exposable"`
-			IsExternal                  bool        `mapstructure:"is_external"`
-			IsOriginatingFromPeer       bool        `mapstructure:"is_originating_from_peer"`
-			LastExposedTime             int         `mapstructure:"last_exposed_time"`
-			Name                        string      `mapstructure:"name"`
-			ReplicationSession          interface{} `mapstructure:"replication_session"`
-			RetentionPolicy             string      `mapstructure:"retention_policy"`
-			ShortName                   string      `mapstructure:"short_name"`
-			Source                      string      `mapstructure:"source"`
-			TriggeredBy                 string      `mapstructure:"triggered_by"`
-			VolsnapsProvisionedCapacity int         `mapstructure:"volsnaps_provisioned_capacity"`
-			VolumeGroup                 string      `mapstructure:"volume_group"`
-			Wwn                         interface{} `mapstructure:"wwn"`
+			CreationTime            int         `mapstructure:"creation_time"`
+			DataCreationTime        interface{} `mapstructure:"data_creation_time"`
+			Description             interface{} `mapstructure:"description"`
+			GenerationNumber        interface{} `mapstructure:"generation_number"`
+			ID                      int         `mapstructure:"id"`
+			IsApplicationConsistent bool        `mapstructure:"is_application_consistent"`
+			IsAutoDeleteable        bool        `mapstructure:"is_auto_deleteable"`
+			IsDeleted               bool        `mapstructure:"is_deleted"`
+			IsExistOnPeer           bool        `mapstructure:"is_exist_on_peer"`
+			IsExposable             bool        `mapstructure:"is_exposable"`
+			IsExternal              bool        `mapstructure:"is_external"`
+			IsLockedByReplication   bool        `mapstructure:"is_locked_by_replication"`
+			IsOriginatingFromPeer   bool        `mapstructure:"is_originating_from_peer"`
+			IscsiTgtConvertedName   string      `mapstructure:"iscsi_tgt_converted_name"`
+			LastExposedTime         interface{} `mapstructure:"last_exposed_time"`
+			Name                    string      `mapstructure:"name"`
+			NumOfClones             int         `mapstructure:"num_of_clones"`
+			ReplicationSession      interface{} `mapstructure:"replication_session"`
+			RetentionPolicy         struct {
+				Ref string `mapstructure:"ref"`
+			} `mapstructure:"retention_policy"`
+			ShortName string `mapstructure:"short_name"`
+			Source    struct {
+				Ref string `mapstructure:"ref"`
+			} `mapstructure:"source"`
+			TriggeredBy                 string `mapstructure:"triggered_by"`
+			VolsnapsProvisionedCapacity int    `mapstructure:"volsnaps_provisioned_capacity"`
+			VolumeGroup                 struct {
+				Ref string `mapstructure:"ref"`
+			} `mapstructure:"volume_group"`
+			Wwn interface{} `mapstructure:"wwn"`
 		} `mapstructure:"hits"`
 		Limit  int `mapstructure:"limit"`
 		Offset int `mapstructure:"offset"`
@@ -427,6 +436,47 @@ type (
 		RetentionPolicy  string `mapstructure:"retention_policy"`
 		IsAutoDeleteable bool   `mapstructure:"is_auto_deleteable"`
 		IsExposable      bool   `mapstructure:"is_exposable"`
+	}
+
+	// CreateThinCloneResponse holds the response of the CreateThinClone() function
+	CreateThinCloneResponse struct {
+		AvgCompressedRatio          interface{} `mapstructure:"avg_compressed_ratio"`
+		AvgCompressedRatioTimestamp float64     `mapstructure:"avg_compressed_ratio_timestamp"`
+		ClonesCount                 int         `mapstructure:"clones_count"`
+		CreationTime                int         `mapstructure:"creation_time"`
+		CurrentReplicationStats     interface{} `mapstructure:"current_replication_stats"`
+		CurrentStats                struct {
+			Ref string `mapstructure:"ref"`
+		} `mapstructure:"current_stats"`
+		Description                    interface{}            `mapstructure:"description"`
+		FullClone                      map[string]interface{} `mapstructure:"full_clone"`
+		HistoricSourceSnapID           int                    `mapstructure:"historic_source_snap_id"`
+		ID                             int                    `mapstructure:"id"`
+		IsDedup                        bool                   `mapstructure:"is_dedup"`
+		IsNew                          bool                   `mapstructure:"is_new"`
+		IscsiTgtConvertedName          string                 `mapstructure:"iscsi_tgt_converted_name"`
+		LastRestoredFrom               interface{}            `mapstructure:"last_restored_from"`
+		LastRestoredTime               interface{}            `mapstructure:"last_restored_time"`
+		LogicalCapacity                float64                `mapstructure:"logical_capacity"`
+		MarkedForDeletion              bool                   `mapstructure:"marked_for_deletion"`
+		Name                           string                 `mapstructure:"name"`
+		NodeID                         int                    `mapstructure:"node_id"`
+		ReadOnly                       bool                   `mapstructure:"read_only"`
+		ScsiSn                         string                 `mapstructure:"scsi_sn"`
+		ScsiSuffix                     int                    `mapstructure:"scsi_suffix"`
+		Size                           int                    `mapstructure:"size"`
+		SnapshotsLogicalCapacity       int                    `mapstructure:"snapshots_logical_capacity"`
+		SourceSnap                     struct {
+			Ref string `mapstructure:"ref"`
+		} `mapstructure:"source_snap"`
+		SourceSnapID                   int     `mapstructure:"source_snap_id"`
+		StreamAvgCompressedSizeInBytes float64 `mapstructure:"stream_avg_compressed_size_in_bytes"`
+		VmwareSupport                  bool    `mapstructure:"vmware_support"`
+		VolumeGroup                    struct {
+			Ref string `mapstructure:"ref"`
+		} `mapstructure:"volume_group"`
+		PipeID   int    `mapstructure:"pipeId"`
+		PipeName string `mapstructure:"pipeName"`
 	}
 
 	// DeleteResponse holds the response of the Delete base function. The status code will always be 204.
