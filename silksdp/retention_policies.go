@@ -2,25 +2,46 @@ package silksdp
 
 import (
 	"fmt"
+	"net/url"
+	"strconv"
 
 	"github.com/mitchellh/mapstructure"
 )
 
+// pre v1.4.0, full pull + client side filter. kept for reference
+// // GetRetentionPolicy returns information on all Retention Policies found on the Silk server.
+// func (c *Credentials) GetRetentionPolicy(timeout ...int) (*GetRetentionPolicyResponse, error) {
+// 	httpTimeout := httpTimeout(timeout)
+//
+// 	apiRequest, err := c.Get("/retention_policies", httpTimeout)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	// Convert the API Response (map[string]interface{}) to a struct
+// 	var apiResponse GetRetentionPolicyResponse
+// 	mapErr := mapstructure.Decode(apiRequest, &apiResponse)
+// 	if mapErr != nil {
+// 		return nil, mapErr
+// 	}
+//
+// 	return &apiResponse, nil
+// }
+
 // GetRetentionPolicy returns information on all Retention Policies found on the Silk server.
 func (c *Credentials) GetRetentionPolicy(timeout ...int) (*GetRetentionPolicyResponse, error) {
-	httpTimeout := httpTimeout(timeout)
-
-	apiRequest, err := c.Get("/retention_policies", httpTimeout)
-	if err != nil {
+	var apiResponse GetRetentionPolicyResponse
+	if err := c.queryInto("/retention_policies", nil, &apiResponse, httpTimeout(timeout)); err != nil {
 		return nil, err
 	}
-	// Convert the API Response (map[string]interface{}) to a struct
-	var apiResponse GetRetentionPolicyResponse
-	mapErr := mapstructure.Decode(apiRequest, &apiResponse)
-	if mapErr != nil {
-		return nil, mapErr
-	}
+	return &apiResponse, nil
+}
 
+// GetRetentionPolicyByID returns the retention policy with the given id (empty Hits if it doesnt exist).
+func (c *Credentials) GetRetentionPolicyByID(id int, timeout ...int) (*GetRetentionPolicyResponse, error) {
+	var apiResponse GetRetentionPolicyResponse
+	if err := c.queryInto("/retention_policies", url.Values{"id": {strconv.Itoa(id)}}, &apiResponse, httpTimeout(timeout)); err != nil {
+		return nil, err
+	}
 	return &apiResponse, nil
 }
 
@@ -50,32 +71,47 @@ func (c *Credentials) DeleteRetentionPolicy(name string, timeout ...int) (*Delet
 
 }
 
-// GetRetentionPolicyID is a quick function for grabbing a retention policy object ID
+// pre v1.4.0, full pull + client side filter. kept for reference
+// // GetRetentionPolicyID is a quick function for grabbing a retention policy object ID
+// func (c *Credentials) GetRetentionPolicyID(name string, timeout ...int) (int, error) {
+//
+// 	httpTimeout := httpTimeout(timeout)
+//
+// 	objectsOnServer, err := c.GetRetentionPolicy(httpTimeout)
+// 	if err != nil {
+// 		return 0, err
+// 	}
+//
+// 	// Set objectID to a value (-1) that can not be returned by the server
+// 	objectID := -1
+// 	for _, object := range objectsOnServer.Hits {
+// 		if object.Name == name {
+// 			objectID = object.ID
+// 		}
+//
+// 	}
+//
+// 	// If the objectID has not been updated (i.e not found on the server) return an error message
+// 	if objectID == -1 {
+// 		return 0, fmt.Errorf("The server does not contain a Retention Policy named '%s'", name)
+// 	}
+//
+// 	return objectID, nil
+//
+// }
+
+// GetRetentionPolicyID returns the id of the named retention policy
 func (c *Credentials) GetRetentionPolicyID(name string, timeout ...int) (int, error) {
-
-	httpTimeout := httpTimeout(timeout)
-
-	objectsOnServer, err := c.GetRetentionPolicy(httpTimeout)
+	policies, err := c.GetRetentionPolicyByName(name, timeout...)
 	if err != nil {
 		return 0, err
 	}
-
-	// Set objectID to a value (-1) that can not be returned by the server
-	objectID := -1
-	for _, object := range objectsOnServer.Hits {
+	for _, object := range policies.Hits {
 		if object.Name == name {
-			objectID = object.ID
+			return object.ID, nil
 		}
-
 	}
-
-	// If the objectID has not been updated (i.e not found on the server) return an error message
-	if objectID == -1 {
-		return 0, fmt.Errorf("The server does not contain a Retention Policy named '%s'", name)
-	}
-
-	return objectID, nil
-
+	return 0, fmt.Errorf("The server does not contain a Retention Policy named '%s'", name)
 }
 
 // CreateRetentionPolicy creates a new Retention Policy on the Silk server.
@@ -145,22 +181,32 @@ func (c *Credentials) UpdateRetentionPolicy(name string, config map[string]inter
 	return &apiResponse, nil
 
 }
-// GetRetentionPolicyByName returns information on all Retention Policies found on the Silk server.
+// pre v1.4.0, full pull + client side filter. kept for reference
+// // GetRetentionPolicyByName returns information on all Retention Policies found on the Silk server.
+// func (c *Credentials) GetRetentionPolicyByName(retentionpolicyname string, timeout ...int) (*GetRetentionPolicyResponse, error) {
+// 	httpTimeout := httpTimeout(timeout)
+//
+// 	enduri := ("/retention_policies?name__contains=" + retentionpolicyname)
+//
+// 	apiRequest, err := c.Get(enduri, httpTimeout)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	// Convert the API Response (map[string]interface{}) to a struct
+// 	var apiResponse GetRetentionPolicyResponse
+// 	mapErr := mapstructure.Decode(apiRequest, &apiResponse)
+// 	if mapErr != nil {
+// 		return nil, mapErr
+// 	}
+//
+// 	return &apiResponse, nil
+// }
+
+// GetRetentionPolicyByName returns retention policies matching the name exactly (api match ignores case).
 func (c *Credentials) GetRetentionPolicyByName(retentionpolicyname string, timeout ...int) (*GetRetentionPolicyResponse, error) {
-	httpTimeout := httpTimeout(timeout)
-
-	enduri := ("/retention_policies?name__contains=" + retentionpolicyname)
-
-	apiRequest, err := c.Get(enduri, httpTimeout)
-	if err != nil {
+	var apiResponse GetRetentionPolicyResponse
+	if err := c.queryInto("/retention_policies", url.Values{"name": {retentionpolicyname}}, &apiResponse, httpTimeout(timeout)); err != nil {
 		return nil, err
 	}
-	// Convert the API Response (map[string]interface{}) to a struct
-	var apiResponse GetRetentionPolicyResponse
-	mapErr := mapstructure.Decode(apiRequest, &apiResponse)
-	if mapErr != nil {
-		return nil, mapErr
-	}
-
 	return &apiResponse, nil
 }

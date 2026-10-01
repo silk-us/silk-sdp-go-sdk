@@ -23,7 +23,9 @@ func (c *Credentials) CreateThinClone(name string, volumeGroupName string, sourc
 		return nil, err
 	}
 
-	snapshotID, err := c.GetVolumeGroupSnapshotID(sourceSnapshotName, httpTimeout)
+	// snapshotID, err := c.GetVolumeGroupSnapshotID(sourceSnapshotName, httpTimeout)
+	// look in the clones vg so a short snap name works
+	snapshotID, err := c.GetVolumeGroupSnapshotIDInGroup(volumeGroupID, sourceSnapshotName, httpTimeout)
 	if err != nil {
 		return nil, err
 	}

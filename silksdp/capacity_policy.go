@@ -2,54 +2,90 @@ package silksdp
 
 import (
 	"fmt"
+	"net/url"
+	"strconv"
 
 	"github.com/mitchellh/mapstructure"
 )
 
+// pre v1.4.0, full pull + client side filter. kept for reference
+// // GetCapacityPolicy returns information on all Capacity Policys found on the Silk server.
+// func (c *Credentials) GetCapacityPolicy(timeout ...int) (*GetCapacityPolicyResponse, error) {
+// 	httpTimeout := httpTimeout(timeout)
+//
+// 	apiRequest, err := c.Get("/vg_capacity_policies", httpTimeout)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	// Convert the API Response (map[string]interface{}) to a struct
+// 	var apiResponse GetCapacityPolicyResponse
+// 	mapErr := mapstructure.Decode(apiRequest, &apiResponse)
+// 	if mapErr != nil {
+// 		return nil, mapErr
+// 	}
+//
+// 	return &apiResponse, nil
+// }
+
 // GetCapacityPolicy returns information on all Capacity Policys found on the Silk server.
 func (c *Credentials) GetCapacityPolicy(timeout ...int) (*GetCapacityPolicyResponse, error) {
-	httpTimeout := httpTimeout(timeout)
-
-	apiRequest, err := c.Get("/vg_capacity_policies", httpTimeout)
-	if err != nil {
+	var apiResponse GetCapacityPolicyResponse
+	if err := c.queryInto("/vg_capacity_policies", nil, &apiResponse, httpTimeout(timeout)); err != nil {
 		return nil, err
 	}
-	// Convert the API Response (map[string]interface{}) to a struct
-	var apiResponse GetCapacityPolicyResponse
-	mapErr := mapstructure.Decode(apiRequest, &apiResponse)
-	if mapErr != nil {
-		return nil, mapErr
-	}
-
 	return &apiResponse, nil
 }
 
+// GetCapacityPolicyByID returns the capacity policy with the given id (empty Hits if it doesnt exist).
+func (c *Credentials) GetCapacityPolicyByID(id int, timeout ...int) (*GetCapacityPolicyResponse, error) {
+	var apiResponse GetCapacityPolicyResponse
+	if err := c.queryInto("/vg_capacity_policies", url.Values{"id": {strconv.Itoa(id)}}, &apiResponse, httpTimeout(timeout)); err != nil {
+		return nil, err
+	}
+	return &apiResponse, nil
+}
+
+// pre v1.4.0, full pull + client side filter. kept for reference
+// // GetCapacityPolicyID collects the capacity policy ID
+// func (c *Credentials) GetCapacityPolicyID(name string, timeout ...int) (int, error) {
+//
+// 	httpTimeout := httpTimeout(timeout)
+//
+// 	objectsOnServer, err := c.GetCapacityPolicy(httpTimeout)
+// 	if err != nil {
+// 		return 0, err
+// 	}
+//
+// 	// Set objectID to a value (-1) that can not be returned by the server
+// 	objectID := -1
+// 	for _, object := range objectsOnServer.Hits {
+// 		if object.Name == name {
+// 			objectID = object.ID
+// 		}
+//
+// 	}
+//
+// 	// If the objectID has not been updated (i.e not found on the server) return an error message
+// 	if objectID == -1 {
+// 		return 0, fmt.Errorf("The server does not contain a Capacity Policy named '%s'", name)
+// 	}
+//
+// 	return objectID, nil
+//
+// }
+
 // GetCapacityPolicyID collects the capacity policy ID
 func (c *Credentials) GetCapacityPolicyID(name string, timeout ...int) (int, error) {
-
-	httpTimeout := httpTimeout(timeout)
-
-	objectsOnServer, err := c.GetCapacityPolicy(httpTimeout)
+	policies, err := c.GetCapacityPolicyByName(name, timeout...)
 	if err != nil {
 		return 0, err
 	}
-
-	// Set objectID to a value (-1) that can not be returned by the server
-	objectID := -1
-	for _, object := range objectsOnServer.Hits {
+	for _, object := range policies.Hits {
 		if object.Name == name {
-			objectID = object.ID
+			return object.ID, nil
 		}
-
 	}
-
-	// If the objectID has not been updated (i.e not found on the server) return an error message
-	if objectID == -1 {
-		return 0, fmt.Errorf("The server does not contain a Capacity Policy named '%s'", name)
-	}
-
-	return objectID, nil
-
+	return 0, fmt.Errorf("The server does not contain a Capacity Policy named '%s'", name)
 }
 
 // CreateCapacityPolicy creates a new Capacity Policy on the Silk server.
@@ -146,22 +182,32 @@ func (c *Credentials) DeleteCapacityPolicy(name string, timeout ...int) (*Delete
 	return &apiResponse, nil
 
 }
-// GetCapacityPolicyByName returns information on all Capacity Policys found on the Silk server.
+// pre v1.4.0, full pull + client side filter. kept for reference
+// // GetCapacityPolicyByName returns information on all Capacity Policys found on the Silk server.
+// func (c *Credentials) GetCapacityPolicyByName(capacitypolicyname string, timeout ...int) (*GetCapacityPolicyResponse, error) {
+// 	httpTimeout := httpTimeout(timeout)
+//
+// 	enduri := ("/vg_capacity_policies?name__contains=" + capacitypolicyname)
+//
+// 	apiRequest, err := c.Get(enduri, httpTimeout)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	// Convert the API Response (map[string]interface{}) to a struct
+// 	var apiResponse GetCapacityPolicyResponse
+// 	mapErr := mapstructure.Decode(apiRequest, &apiResponse)
+// 	if mapErr != nil {
+// 		return nil, mapErr
+// 	}
+//
+// 	return &apiResponse, nil
+// }
+
+// GetCapacityPolicyByName returns capacity policies matching the name exactly (api match ignores case).
 func (c *Credentials) GetCapacityPolicyByName(capacitypolicyname string, timeout ...int) (*GetCapacityPolicyResponse, error) {
-	httpTimeout := httpTimeout(timeout)
-
-	enduri := ("/vg_capacity_policies?name__contains=" + capacitypolicyname)
-
-	apiRequest, err := c.Get(enduri, httpTimeout)
-	if err != nil {
+	var apiResponse GetCapacityPolicyResponse
+	if err := c.queryInto("/vg_capacity_policies", url.Values{"name": {capacitypolicyname}}, &apiResponse, httpTimeout(timeout)); err != nil {
 		return nil, err
 	}
-	// Convert the API Response (map[string]interface{}) to a struct
-	var apiResponse GetCapacityPolicyResponse
-	mapErr := mapstructure.Decode(apiRequest, &apiResponse)
-	if mapErr != nil {
-		return nil, mapErr
-	}
-
 	return &apiResponse, nil
 }

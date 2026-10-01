@@ -11,10 +11,15 @@ import (
 	"io/ioutil"
 	"net"
 	"net/http"
+	"net/url"
 	"os"
 	"reflect"
 	"sort"
+	"strconv"
+	"strings"
 	"time"
+
+	"github.com/mitchellh/mapstructure"
 )
 
 // Type and Constants are used for escaping Get requests
@@ -81,6 +86,11 @@ func ConnectEnv() (*Credentials, error) {
 
 // makeHTTPCall consolidates the functionality for the GET, POST, PATCH, and DELETE functions.
 func (c *Credentials) makeHTTPCall(callType, apiEndpoint string, config interface{}, timeout int) (interface{}, error) {
+	return c.doHTTPCall(callType, apiEndpoint, config, timeout, false)
+}
+
+// doHTTPCall does the actual work. encoded=true means the query string was already built by query()
+func (c *Credentials) doHTTPCall(callType, apiEndpoint string, config interface{}, timeout int, encoded bool) (interface{}, error) {
 
 	if endpointValidation(apiEndpoint) == "errorStart" {
 		return nil, errors.New("The API Endpoint should begin with '/' (ex: /cluster/me)")
@@ -101,17 +111,26 @@ func (c *Credentials) makeHTTPCall(callType, apiEndpoint string, config interfac
 	requestURL := fmt.Sprintf("https://%s/api/%s%s", c.Server, apiVersion, apiEndpoint)
 
 	var request *http.Request
+	var err error
 	switch callType {
 	case "GET":
-		request, _ = http.NewRequest(callType, getEscape(requestURL), nil)
+		// request, _ = http.NewRequest(callType, getEscape(requestURL), nil)
+		if encoded {
+			request, err = http.NewRequest(callType, requestURL, nil)
+		} else {
+			request, err = http.NewRequest(callType, getEscape(requestURL), nil)
+		}
 	case "POST":
 		convertedConfig, _ := json.Marshal(config)
-		request, _ = http.NewRequest(callType, requestURL, bytes.NewBuffer(convertedConfig))
+		request, err = http.NewRequest(callType, requestURL, bytes.NewBuffer(convertedConfig))
 	case "PATCH":
 		convertedConfig, _ := json.Marshal(config)
-		request, _ = http.NewRequest(callType, requestURL, bytes.NewBuffer(convertedConfig))
+		request, err = http.NewRequest(callType, requestURL, bytes.NewBuffer(convertedConfig))
 	case "DELETE":
-		request, _ = http.NewRequest(callType, requestURL, nil)
+		request, err = http.NewRequest(callType, requestURL, nil)
+	}
+	if err != nil {
+		return nil, err
 	}
 
 	request.SetBasicAuth(c.Username, c.Password)
@@ -125,11 +144,28 @@ func (c *Credentials) makeHTTPCall(callType, apiEndpoint string, config interfac
 		return nil, err
 	}
 
+	defer apiRequest.Body.Close()
+
 	// Place a 1 second pause here - Post request but prior to returning the response.
-	duration := time.Second // Pause for 1 second.
-	time.Sleep(duration)
+	// duration := time.Second // Pause for 1 second.
+	// time.Sleep(duration)
+	// only POSTs need this, api queues creates. was hitting every GET too
+	if callType == "POST" {
+		time.Sleep(time.Second)
+	}
 
 	body, err := ioutil.ReadAll(apiRequest.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	// empty body used to fall thru as nil and panic on reflect below
+	if len(body) == 0 {
+		if apiRequest.StatusCode >= 300 {
+			return nil, fmt.Errorf("%s", apiRequest.Status)
+		}
+		return map[string]interface{}{"statusCode": apiRequest.StatusCode}, nil
+	}
 
 	apiResponse := []byte(body)
 
@@ -144,6 +180,10 @@ func (c *Credentials) makeHTTPCall(callType, apiEndpoint string, config interfac
 			return nil, fmt.Errorf("%s", apiRequest.Status)
 		}
 
+	}
+
+	if convertedAPIResponse == nil {
+		return nil, fmt.Errorf("Unreadable response from the Silk SDP server (%s)", apiRequest.Status)
 	}
 
 	if reflect.TypeOf(convertedAPIResponse).Kind() == reflect.Slice {
@@ -309,6 +349,48 @@ func (c *Credentials) Delete(apiEndpoint string, timeout ...int) (interface{}, e
 	}
 
 	return apiRequest, nil
+}
+
+// query sends a filtered GET. Always asks for the full set since the api pages at 100.
+// Filter keys follow the api rules, ie name=x, id__in=1,2, host.ref=/hosts/1
+func (c *Credentials) query(apiEndpoint string, filters url.Values, timeout int) (interface{}, error) {
+	if filters == nil {
+		filters = url.Values{}
+	}
+	filters.Set("__limit", "9999")
+	return c.doHTTPCall("GET", apiEndpoint+"?"+filters.Encode(), nil, timeout, true)
+}
+
+// queryInto runs query() and decodes the result into out
+func (c *Credentials) queryInto(apiEndpoint string, filters url.Values, out interface{}, timeout int) error {
+	apiRequest, err := c.query(apiEndpoint, filters, timeout)
+	if err != nil {
+		return err
+	}
+	return mapstructure.Decode(apiRequest, out)
+}
+
+// ref builds the value for a {field}.ref filter, ie ref("hosts", 1) = /hosts/1
+func ref(collection string, id int) string {
+	return fmt.Sprintf("/%s/%d", collection, id)
+}
+
+// refID pulls the trailing id off a ref like /hosts/12. 0 if theres nothing usable
+func refID(r string) int {
+	id, err := strconv.Atoi(r[strings.LastIndex(r, "/")+1:])
+	if err != nil {
+		return 0
+	}
+	return id
+}
+
+// idList turns [3 7 9] into "3,7,9" for id__in
+func idList(ids []int) string {
+	s := make([]string, len(ids))
+	for i, id := range ids {
+		s[i] = strconv.Itoa(id)
+	}
+	return strings.Join(s, ",")
 }
 
 // stringEq converts b to []string, sorts the two []string, and checks for equality

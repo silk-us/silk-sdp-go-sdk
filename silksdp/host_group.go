@@ -2,6 +2,8 @@ package silksdp
 
 import (
 	"fmt"
+	"net/url"
+	"strconv"
 	"strings"
 
 	"github.com/mitchellh/mapstructure"
@@ -34,23 +36,33 @@ func (c *Credentials) CreateHostGroup(name, description string, allowDifferentHo
 	return &apiResponse, nil
 }
 
+// pre v1.4.0, full pull + client side filter. kept for reference
+// // GetHostGroups returns information on all Host Groups found on the Silk server.
+// func (c *Credentials) GetHostGroups(timeout ...int) (*GetHostGroupsResponse, error) {
+//
+// 	httpTimeout := httpTimeout(timeout)
+//
+// 	apiRequest, err := c.Get("/host_groups", httpTimeout)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+//
+// 	// Convert the API Response (map[string]interface{}) to a struct
+// 	var apiResponse GetHostGroupsResponse
+// 	mapErr := mapstructure.Decode(apiRequest, &apiResponse)
+// 	if mapErr != nil {
+// 		return nil, mapErr
+// 	}
+//
+// 	return &apiResponse, nil
+// }
+
 // GetHostGroups returns information on all Host Groups found on the Silk server.
 func (c *Credentials) GetHostGroups(timeout ...int) (*GetHostGroupsResponse, error) {
-
-	httpTimeout := httpTimeout(timeout)
-
-	apiRequest, err := c.Get("/host_groups", httpTimeout)
-	if err != nil {
+	var apiResponse GetHostGroupsResponse
+	if err := c.queryInto("/host_groups", nil, &apiResponse, httpTimeout(timeout)); err != nil {
 		return nil, err
 	}
-
-	// Convert the API Response (map[string]interface{}) to a struct
-	var apiResponse GetHostGroupsResponse
-	mapErr := mapstructure.Decode(apiRequest, &apiResponse)
-	if mapErr != nil {
-		return nil, mapErr
-	}
-
 	return &apiResponse, nil
 }
 
@@ -136,57 +148,95 @@ func (c *Credentials) DeleteHostGroup(name string, timeout ...int) (*DeleteRespo
 
 }
 
+// pre v1.4.0, full pull + client side filter. kept for reference
+// // GetHostGroupID provides the ID for the provided Host Group name.
+// func (c *Credentials) GetHostGroupID(name string, timeout ...int) (int, error) {
+//
+// 	httpTimeout := httpTimeout(timeout)
+//
+// 	objectsOnServer, err := c.GetHostGroups(httpTimeout)
+// 	if err != nil {
+// 		return 0, err
+// 	}
+//
+// 	// Set objectID to a value (-1) that can not be returned by the server
+// 	objectID := -1
+// 	for _, object := range objectsOnServer.Hits {
+// 		if object.Name == name {
+// 			objectID = object.ID
+// 		}
+//
+// 	}
+//
+// 	// If the objectID has not been updated (i.e not found on the server) return an error message
+// 	if objectID == -1 {
+// 		return 0, fmt.Errorf("The server does not contain a Host Group named '%s'", name)
+// 	}
+//
+// 	return objectID, nil
+//
+// }
+
 // GetHostGroupID provides the ID for the provided Host Group name.
 func (c *Credentials) GetHostGroupID(name string, timeout ...int) (int, error) {
-
-	httpTimeout := httpTimeout(timeout)
-
-	objectsOnServer, err := c.GetHostGroups(httpTimeout)
+	hostGroups, err := c.GetHostGroupByName(name, timeout...)
 	if err != nil {
 		return 0, err
 	}
-
-	// Set objectID to a value (-1) that can not be returned by the server
-	objectID := -1
-	for _, object := range objectsOnServer.Hits {
-		if object.Name == name {
-			objectID = object.ID
+	// api name match ignores case, keep ours exact
+	for _, hg := range hostGroups.Hits {
+		if hg.Name == name {
+			return hg.ID, nil
 		}
-
 	}
-
-	// If the objectID has not been updated (i.e not found on the server) return an error message
-	if objectID == -1 {
-		return 0, fmt.Errorf("The server does not contain a Host Group named '%s'", name)
-	}
-
-	return objectID, nil
-
+	return 0, fmt.Errorf("The server does not contain a Host Group named '%s'", name)
 }
+
+// pre v1.4.0, full pull + client side filter. kept for reference
+// // GetHostGroupName provides the name of a Host Group given its ID.
+// func (c *Credentials) GetHostGroupName(id int, timeout ...int) (string, error) {
+//
+// 	httpTimeout := httpTimeout(timeout)
+//
+// 	apiRequest, err := c.Get(fmt.Sprintf("/host_groups?id__in=%d", id), httpTimeout)
+// 	if err != nil {
+// 		return "", err
+// 	}
+//
+// 	// Convert the API Response (map[string]interface{}) to a struct
+// 	var apiResponse GetHostGroupsResponse
+// 	mapErr := mapstructure.Decode(apiRequest, &apiResponse)
+// 	if mapErr != nil {
+// 		return "", mapErr
+// 	}
+//
+// 	for _, hostGroup := range apiResponse.Hits {
+// 		return hostGroup.Name, nil
+// 	}
+//
+// 	return "", fmt.Errorf("Did not found hostgroup with id=%d", id)
+//
+// }
 
 // GetHostGroupName provides the name of a Host Group given its ID.
 func (c *Credentials) GetHostGroupName(id int, timeout ...int) (string, error) {
-
-	httpTimeout := httpTimeout(timeout)
-
-	apiRequest, err := c.Get(fmt.Sprintf("/host_groups?id__in=%d", id), httpTimeout)
+	hostGroups, err := c.GetHostGroupByID(id, timeout...)
 	if err != nil {
 		return "", err
 	}
+	if len(hostGroups.Hits) == 0 {
+		return "", fmt.Errorf("Did not found hostgroup with id=%d", id)
+	}
+	return hostGroups.Hits[0].Name, nil
+}
 
-	// Convert the API Response (map[string]interface{}) to a struct
+// GetHostGroupByID returns the host group with the given id (empty Hits if it doesnt exist).
+func (c *Credentials) GetHostGroupByID(id int, timeout ...int) (*GetHostGroupsResponse, error) {
 	var apiResponse GetHostGroupsResponse
-	mapErr := mapstructure.Decode(apiRequest, &apiResponse)
-	if mapErr != nil {
-		return "", mapErr
+	if err := c.queryInto("/host_groups", url.Values{"id": {strconv.Itoa(id)}}, &apiResponse, httpTimeout(timeout)); err != nil {
+		return nil, err
 	}
-
-	for _, hostGroup := range apiResponse.Hits {
-		return hostGroup.Name, nil
-	}
-
-	return "", fmt.Errorf("Did not found hostgroup with id=%d", id)
-
+	return &apiResponse, nil
 }
 
 // CreateHostGroupVolumeMapping will map a Host to the provided Volume.
@@ -336,30 +386,54 @@ func (c *Credentials) CreateHostGroupVolumeGroupMapping(hostGroupName string, vo
 	return hostGroupVolumeMappingResponse, nil
 }
 
+// pre v1.4.0, full pull + client side filter. kept for reference
+// // GetHostGroupMappings returns information on all Host Group Mappings found on the Silk server.
+// //
+// // The returned []HostMappingRespons slice only contains information on the Host Groups and not
+// // the full response of the API call. If no host mappings are found, an empty slice will be returned.
+// func (c *Credentials) GetHostGroupMappings(timeout ...int) ([]IndividualHostMappingResponse, error) {
+//
+// 	httpTimeout := httpTimeout(timeout)
+//
+// 	apiRequest, err := c.Get("/mappings", httpTimeout)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+//
+// 	// Convert the API Response (map[string]interface{}) to a struct
+// 	var apiResponse GetHostMappingsResponse
+// 	mapErr := mapstructure.Decode(apiRequest, &apiResponse)
+// 	if mapErr != nil {
+// 		return nil, mapErr
+// 	}
+//
+// 	// Filter all "host_groups" mappings from the apiRequest and save them to a
+// 	// slice that will be returned to the user.
+// 	var hostGroupMappings []IndividualHostMappingResponse
+// 	for _, value := range apiResponse.Hits {
+// 		if strings.Contains(value.Host.Ref, "/host_groups") == true {
+// 			hostGroupMappings = append(hostGroupMappings, value)
+// 		}
+// 	}
+//
+// 	return hostGroupMappings, nil
+//
+// }
+
 // GetHostGroupMappings returns information on all Host Group Mappings found on the Silk server.
 //
-// The returned []HostMappingRespons slice only contains information on the Host Groups and not
-// the full response of the API call. If no host mappings are found, an empty slice will be returned.
+// If no host group mappings are found, an empty slice will be returned.
 func (c *Credentials) GetHostGroupMappings(timeout ...int) ([]IndividualHostMappingResponse, error) {
 
-	httpTimeout := httpTimeout(timeout)
-
-	apiRequest, err := c.Get("/mappings", httpTimeout)
+	mappings, err := c.getMappings(nil, httpTimeout(timeout))
 	if err != nil {
 		return nil, err
 	}
 
-	// Convert the API Response (map[string]interface{}) to a struct
-	var apiResponse GetHostMappingsResponse
-	mapErr := mapstructure.Decode(apiRequest, &apiResponse)
-	if mapErr != nil {
-		return nil, mapErr
-	}
-
-	// Filter all "host_groups" mappings from the apiRequest and save them to a
+	// Filter all "host_groups" mappings and save them to a
 	// slice that will be returned to the user.
 	var hostGroupMappings []IndividualHostMappingResponse
-	for _, value := range apiResponse.Hits {
+	for _, value := range mappings {
 		if strings.Contains(value.Host.Ref, "/host_groups") == true {
 			hostGroupMappings = append(hostGroupMappings, value)
 		}
@@ -369,204 +443,317 @@ func (c *Credentials) GetHostGroupMappings(timeout ...int) ([]IndividualHostMapp
 
 }
 
+// pre v1.4.0, full pull + client side filter. kept for reference
+// // DeleteHostGroupMappings removes all mappings from the provided Host Group.
+// func (c *Credentials) DeleteHostGroupMappings(hostGroupName string, timeout ...int) (*DeleteResponse, error) {
+//
+// 	httpTimeout := httpTimeout(timeout)
+//
+// 	hostGroupID, err := c.GetHostGroupID(hostGroupName)
+// 	if hostGroupID != 0 && err != nil {
+// 		return nil, err
+// 	} else {
+//
+// 		hostGroupMappingsOnServer, err := c.GetHostGroupMappings(httpTimeout)
+// 		if err != nil {
+// 			return nil, err
+// 		}
+// 	
+// 		// Filter all "host_groups" mappings found on the server and save to a new
+// 		// slice for processing
+// 		var mappingIDs []int
+// 		for _, mapping := range hostGroupMappingsOnServer {
+// 			if mapping.Host.Ref == fmt.Sprintf("/host_groups/%d", hostGroupID) {
+// 				mappingIDs = append(mappingIDs, mapping.ID)
+// 			}
+// 	
+// 		}
+// 	
+// 		// Return an error message if the host group does not have any mappings
+// 		for _, id := range mappingIDs {
+// 			_, err := c.Delete(fmt.Sprintf("/mappings/%d", id), httpTimeout)
+// 			if err != nil {
+// 				return nil, err
+// 			}
+// 	
+// 		}
+// 	
+// 		// Since we are ignoring the response of each of the Delete calls above,
+// 		// create a "dummy" DeleteReponse to return to the end user to signify success
+// 		var apiResponse DeleteResponse
+// 		apiResponse.StatusCode = 204
+// 	
+// 		return &apiResponse, nil
+//
+// 	}
+// }
+
 // DeleteHostGroupMappings removes all mappings from the provided Host Group.
 func (c *Credentials) DeleteHostGroupMappings(hostGroupName string, timeout ...int) (*DeleteResponse, error) {
 
 	httpTimeout := httpTimeout(timeout)
 
-	hostGroupID, err := c.GetHostGroupID(hostGroupName)
+	hostGroupID, err := c.GetHostGroupID(hostGroupName, httpTimeout)
 	if hostGroupID != 0 && err != nil {
 		return nil, err
-	} else {
+	}
 
-		hostGroupMappingsOnServer, err := c.GetHostGroupMappings(httpTimeout)
+	mappings, err := c.getMappings(url.Values{"host.ref": {ref("host_groups", hostGroupID)}}, httpTimeout)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, mapping := range mappings {
+		_, err := c.Delete(fmt.Sprintf("/mappings/%d", mapping.ID), httpTimeout)
 		if err != nil {
 			return nil, err
 		}
-	
-		// Filter all "host_groups" mappings found on the server and save to a new
-		// slice for processing
-		var mappingIDs []int
-		for _, mapping := range hostGroupMappingsOnServer {
-			if mapping.Host.Ref == fmt.Sprintf("/host_groups/%d", hostGroupID) {
-				mappingIDs = append(mappingIDs, mapping.ID)
-			}
-	
-		}
-	
-		// Return an error message if the host group does not have any mappings
-		for _, id := range mappingIDs {
-			_, err := c.Delete(fmt.Sprintf("/mappings/%d", id), httpTimeout)
-			if err != nil {
-				return nil, err
-			}
-	
-		}
-	
-		// Since we are ignoring the response of each of the Delete calls above,
-		// create a "dummy" DeleteReponse to return to the end user to signify success
-		var apiResponse DeleteResponse
-		apiResponse.StatusCode = 204
-	
-		return &apiResponse, nil
-
 	}
+
+	// Since we are ignoring the response of each of the Delete calls above,
+	// create a "dummy" DeleteReponse to return to the end user to signify success
+	var apiResponse DeleteResponse
+	apiResponse.StatusCode = 204
+
+	return &apiResponse, nil
 }
 
+
+// pre v1.4.0, full pull + client side filter. kept for reference
+// // DeleteHostGroupVolumeMapping removes a single Volume mapping from a Host Group.
+// func (c *Credentials) DeleteHostGroupVolumeMapping(hostGroupName, volumeName string, timeout ...int) (*DeleteResponse, error) {
+//
+// 	httpTimeout := httpTimeout(timeout)
+//
+// 	hostGroupID, err := c.GetHostGroupID(hostGroupName)
+// 	if hostGroupID != 0 && err != nil {
+// 		return nil, err
+// 	}
+//
+// 	volumeID, err := c.GetVolumeID(volumeName)
+// 	if volumeID != 0 && err != nil {
+// 		return nil, err
+// 	}
+//
+// 	if volumeID != 0 && hostGroupID != 0 {
+// 		hostGroupMappingsOnServer, err := c.GetHostGroupMappings(httpTimeout)
+// 		if err != nil {
+// 			return nil, err
+// 		}
+// 		// Filter out the user provided volume and host group from the hostMappingsOnServer
+// 		// results
+// 		mappingID := -1
+// 		for _, mapping := range hostGroupMappingsOnServer {
+// 			if mapping.Volume.Ref == fmt.Sprintf("/volumes/%d", volumeID) {
+// 				if mapping.Host.Ref == fmt.Sprintf("/host_groups/%d", hostGroupID) {
+// 					mappingID = mapping.ID
+//
+// 				}
+// 			}
+// 		}
+//
+// 		// If the mappingID has not been updated (i.e not found on the server) return an error message
+// 		if mappingID == -1 {
+// 			return nil, fmt.Errorf("No %s Volume mappings found on the Host Group '%s'", volumeName, hostGroupName)
+// 		}
+//
+// 		apiRequest, err := c.Delete(fmt.Sprintf("/mappings/%d", mappingID), httpTimeout)
+// 		if err != nil {
+// 			return nil, err
+// 		}
+//
+// 		// Convert the API Response (map[string]interface{}) to a struct
+// 		var apiResponse DeleteResponse
+// 		mapErr := mapstructure.Decode(apiRequest, &apiResponse)
+// 		if mapErr != nil {
+// 			return nil, mapErr
+// 		}
+//
+// 		return &apiResponse, nil
+// 	}
+// 	return nil,nil
+//
+// }
 
 // DeleteHostGroupVolumeMapping removes a single Volume mapping from a Host Group.
 func (c *Credentials) DeleteHostGroupVolumeMapping(hostGroupName, volumeName string, timeout ...int) (*DeleteResponse, error) {
 
 	httpTimeout := httpTimeout(timeout)
 
-	hostGroupID, err := c.GetHostGroupID(hostGroupName)
+	hostGroupID, err := c.GetHostGroupID(hostGroupName, httpTimeout)
 	if hostGroupID != 0 && err != nil {
 		return nil, err
 	}
 
-	volumeID, err := c.GetVolumeID(volumeName)
+	volumeID, err := c.GetVolumeID(volumeName, httpTimeout)
 	if volumeID != 0 && err != nil {
 		return nil, err
 	}
 
-	if volumeID != 0 && hostGroupID != 0 {
-		hostGroupMappingsOnServer, err := c.GetHostGroupMappings(httpTimeout)
-		if err != nil {
-			return nil, err
-		}
-		// Filter out the user provided volume and host group from the hostMappingsOnServer
-		// results
-		mappingID := -1
-		for _, mapping := range hostGroupMappingsOnServer {
-			if mapping.Volume.Ref == fmt.Sprintf("/volumes/%d", volumeID) {
-				if mapping.Host.Ref == fmt.Sprintf("/host_groups/%d", hostGroupID) {
-					mappingID = mapping.ID
-
-				}
-			}
-		}
-
-		// If the mappingID has not been updated (i.e not found on the server) return an error message
-		if mappingID == -1 {
-			return nil, fmt.Errorf("No %s Volume mappings found on the Host Group '%s'", volumeName, hostGroupName)
-		}
-
-		apiRequest, err := c.Delete(fmt.Sprintf("/mappings/%d", mappingID), httpTimeout)
-		if err != nil {
-			return nil, err
-		}
-
-		// Convert the API Response (map[string]interface{}) to a struct
-		var apiResponse DeleteResponse
-		mapErr := mapstructure.Decode(apiRequest, &apiResponse)
-		if mapErr != nil {
-			return nil, mapErr
-		}
-
-		return &apiResponse, nil
+	if volumeID == 0 || hostGroupID == 0 {
+		return nil, nil
 	}
-	return nil,nil
 
+	return c.deleteMapping(ref("host_groups", hostGroupID), ref("volumes", volumeID), httpTimeout,
+		fmt.Sprintf("No %s Volume mappings found on the Host Group '%s'", volumeName, hostGroupName))
 }
+
+// pre v1.4.0, full pull + client side filter. kept for reference
+// // DeleteHostGroupVolumeGroupMapping removes a single Volume Group mapping from a Host Group.
+// func (c *Credentials) DeleteHostGroupVolumeGroupMapping(hostGroupName, volumeGroupName string, timeout ...int) (*DeleteResponse, error) {
+//
+// 	httpTimeout := httpTimeout(timeout)
+//
+// 	hostGroupID, err := c.GetHostGroupID(hostGroupName)
+// 	if hostGroupID != 0 && err != nil  {
+// 		return nil, err
+// 	}
+//
+// 	volumeGroupID, err := c.GetVolumeGroupID(volumeGroupName)
+// 	if volumeGroupID != 0 && err != nil  {
+// 		return nil, err
+// 	}
+//
+// 	if volumeGroupID != 0 && hostGroupID != 0 {
+// 		hostGroupMappingsOnServer, err := c.GetHostGroupMappings(httpTimeout)
+// 		if err != nil {
+// 			return nil, err
+// 		}
+//
+// 		// Filter out the user provided volume and host group from the hostMappingsOnServer
+// 		// results
+// 		mappingID := -1
+// 		for _, mapping := range hostGroupMappingsOnServer {
+// 			if mapping.Volume.Ref == fmt.Sprintf("/volume_groups/%d", volumeGroupID) {
+// 				if mapping.Host.Ref == fmt.Sprintf("/host_groups/%d", hostGroupID) {
+// 					mappingID = mapping.ID
+//
+// 				}
+// 			}
+// 		}
+//
+// 		// If the mappingID has not been updated (i.e not found on the server) return an error message
+// 		if mappingID == -1 {
+// 			return nil, fmt.Errorf("No %s Volume Group mappings found on the Host Group '%s'", volumeGroupName, hostGroupName)
+// 		}
+//
+// 		apiRequest, err := c.Delete(fmt.Sprintf("/mappings/%d", mappingID), httpTimeout)
+// 		if err != nil {
+// 			return nil, err
+// 		}
+//
+// 		// Convert the API Response (map[string]interface{}) to a struct
+// 		var apiResponse DeleteResponse
+// 		mapErr := mapstructure.Decode(apiRequest, &apiResponse)
+// 		if mapErr != nil {
+// 			return nil, mapErr
+// 		}
+//
+// 		return &apiResponse, nil
+// 	}
+// 	return nil,nil
+// }
 
 // DeleteHostGroupVolumeGroupMapping removes a single Volume Group mapping from a Host Group.
 func (c *Credentials) DeleteHostGroupVolumeGroupMapping(hostGroupName, volumeGroupName string, timeout ...int) (*DeleteResponse, error) {
 
 	httpTimeout := httpTimeout(timeout)
 
-	hostGroupID, err := c.GetHostGroupID(hostGroupName)
-	if hostGroupID != 0 && err != nil  {
+	hostGroupID, err := c.GetHostGroupID(hostGroupName, httpTimeout)
+	if hostGroupID != 0 && err != nil {
 		return nil, err
 	}
 
-	volumeGroupID, err := c.GetVolumeGroupID(volumeGroupName)
-	if volumeGroupID != 0 && err != nil  {
+	volumeGroupID, err := c.GetVolumeGroupID(volumeGroupName, httpTimeout)
+	if volumeGroupID != 0 && err != nil {
 		return nil, err
 	}
 
-	if volumeGroupID != 0 && hostGroupID != 0 {
-		hostGroupMappingsOnServer, err := c.GetHostGroupMappings(httpTimeout)
-		if err != nil {
-			return nil, err
-		}
-
-		// Filter out the user provided volume and host group from the hostMappingsOnServer
-		// results
-		mappingID := -1
-		for _, mapping := range hostGroupMappingsOnServer {
-			if mapping.Volume.Ref == fmt.Sprintf("/volume_groups/%d", volumeGroupID) {
-				if mapping.Host.Ref == fmt.Sprintf("/host_groups/%d", hostGroupID) {
-					mappingID = mapping.ID
-
-				}
-			}
-		}
-
-		// If the mappingID has not been updated (i.e not found on the server) return an error message
-		if mappingID == -1 {
-			return nil, fmt.Errorf("No %s Volume Group mappings found on the Host Group '%s'", volumeGroupName, hostGroupName)
-		}
-
-		apiRequest, err := c.Delete(fmt.Sprintf("/mappings/%d", mappingID), httpTimeout)
-		if err != nil {
-			return nil, err
-		}
-
-		// Convert the API Response (map[string]interface{}) to a struct
-		var apiResponse DeleteResponse
-		mapErr := mapstructure.Decode(apiRequest, &apiResponse)
-		if mapErr != nil {
-			return nil, mapErr
-		}
-
-		return &apiResponse, nil
+	if volumeGroupID == 0 || hostGroupID == 0 {
+		return nil, nil
 	}
-	return nil,nil
+
+	return c.deleteMapping(ref("host_groups", hostGroupID), ref("volume_groups", volumeGroupID), httpTimeout,
+		fmt.Sprintf("No %s Volume Group mappings found on the Host Group '%s'", volumeGroupName, hostGroupName))
 }
+
+// pre v1.4.0, full pull + client side filter. kept for reference
+// // GetHostGroupHosts provides the name of each Host in a Host Group.
+// func (c *Credentials) GetHostGroupHosts(name string, timeout ...int) ([]string, error) {
+//
+// 	httpTimeout := httpTimeout(timeout)
+//
+// 	hostGroupID, err := c.GetHostGroupID(name, httpTimeout)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+//
+// 	hostsOnServer, err := c.GetHosts(httpTimeout)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+//
+// 	hostsInHostGroup := []string{}
+//
+// 	for _, host := range hostsOnServer.Hits {
+// 		if host.HostGroup.Ref == fmt.Sprintf("/host_groups/%d", hostGroupID) {
+// 			hostsInHostGroup = append(hostsInHostGroup, host.Name)
+// 		}
+// 	}
+//
+// 	return hostsInHostGroup, nil
+// }
 
 // GetHostGroupHosts provides the name of each Host in a Host Group.
 func (c *Credentials) GetHostGroupHosts(name string, timeout ...int) ([]string, error) {
-
-	httpTimeout := httpTimeout(timeout)
-
-	hostGroupID, err := c.GetHostGroupID(name, httpTimeout)
+	hostGroupID, err := c.GetHostGroupID(name, timeout...)
 	if err != nil {
 		return nil, err
 	}
+	return c.GetHostGroupHostsByID(hostGroupID, timeout...)
+}
 
-	hostsOnServer, err := c.GetHosts(httpTimeout)
-	if err != nil {
+// GetHostGroupHostsByID same as GetHostGroupHosts but skips the name lookup
+func (c *Credentials) GetHostGroupHostsByID(hostGroupID int, timeout ...int) ([]string, error) {
+	var hosts GetHostsResponse
+	if err := c.queryInto("/hosts", url.Values{"host_group.ref": {ref("host_groups", hostGroupID)}}, &hosts, httpTimeout(timeout)); err != nil {
 		return nil, err
 	}
 
 	hostsInHostGroup := []string{}
-
-	for _, host := range hostsOnServer.Hits {
-		if host.HostGroup.Ref == fmt.Sprintf("/host_groups/%d", hostGroupID) {
-			hostsInHostGroup = append(hostsInHostGroup, host.Name)
-		}
+	for _, host := range hosts.Hits {
+		hostsInHostGroup = append(hostsInHostGroup, host.Name)
 	}
-
 	return hostsInHostGroup, nil
 }
-// GetHostGroupByName returns information on all Host Groups found on the Silk server.
+// pre v1.4.0, full pull + client side filter. kept for reference
+// // GetHostGroupByName returns information on all Host Groups found on the Silk server.
+// func (c *Credentials) GetHostGroupByName(hostgroupname string, timeout ...int) (*GetHostGroupsResponse, error) {
+//
+// 	httpTimeout := httpTimeout(timeout)
+//
+// 	enduri := ("/host_groups?name__contains=" + hostgroupname)
+//
+// 	apiRequest, err := c.Get(enduri, httpTimeout)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+//
+// 	// Convert the API Response (map[string]interface{}) to a struct
+// 	var apiResponse GetHostGroupsResponse
+// 	mapErr := mapstructure.Decode(apiRequest, &apiResponse)
+// 	if mapErr != nil {
+// 		return nil, mapErr
+// 	}
+//
+// 	return &apiResponse, nil
+// }
+
+// GetHostGroupByName returns host groups matching the name exactly (api match ignores case).
 func (c *Credentials) GetHostGroupByName(hostgroupname string, timeout ...int) (*GetHostGroupsResponse, error) {
-
-	httpTimeout := httpTimeout(timeout)
-
-	enduri := ("/host_groups?name__contains=" + hostgroupname)
-
-	apiRequest, err := c.Get(enduri, httpTimeout)
-	if err != nil {
+	var apiResponse GetHostGroupsResponse
+	if err := c.queryInto("/host_groups", url.Values{"name": {hostgroupname}}, &apiResponse, httpTimeout(timeout)); err != nil {
 		return nil, err
 	}
-
-	// Convert the API Response (map[string]interface{}) to a struct
-	var apiResponse GetHostGroupsResponse
-	mapErr := mapstructure.Decode(apiRequest, &apiResponse)
-	if mapErr != nil {
-		return nil, mapErr
-	}
-
 	return &apiResponse, nil
 }

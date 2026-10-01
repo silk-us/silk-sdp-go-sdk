@@ -2,8 +2,9 @@ package silksdp
 
 import (
 	"fmt"
+	"net/url"
 	"strconv"
-	"strings"
+	// "strings"
 
 	"github.com/mitchellh/mapstructure"
 )
@@ -36,23 +37,42 @@ func (c *Credentials) CreateVolumeGroup(name string, quotaInGb int, enableDeDupl
 	return &apiResponse, nil
 }
 
+// pre v1.4.0, full pull + client side filter. kept for reference
+// // GetVolumeGroups returns information on all Volume Groups found on the Silk server.
+// func (c *Credentials) GetVolumeGroups(timeout ...int) (*GetVolumeGroupsResponse, error) {
+//
+// 	httpTimeout := httpTimeout(timeout)
+//
+// 	apiRequest, err := c.Get("/volume_groups", httpTimeout)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+//
+// 	// Convert the API Response (map[string]interface{}) to a struct
+// 	var apiResponse GetVolumeGroupsResponse
+// 	mapErr := mapstructure.Decode(apiRequest, &apiResponse)
+// 	if mapErr != nil {
+// 		return nil, mapErr
+// 	}
+//
+// 	return &apiResponse, nil
+// }
+
 // GetVolumeGroups returns information on all Volume Groups found on the Silk server.
 func (c *Credentials) GetVolumeGroups(timeout ...int) (*GetVolumeGroupsResponse, error) {
-
-	httpTimeout := httpTimeout(timeout)
-
-	apiRequest, err := c.Get("/volume_groups", httpTimeout)
-	if err != nil {
+	var apiResponse GetVolumeGroupsResponse
+	if err := c.queryInto("/volume_groups", nil, &apiResponse, httpTimeout(timeout)); err != nil {
 		return nil, err
 	}
+	return &apiResponse, nil
+}
 
-	// Convert the API Response (map[string]interface{}) to a struct
+// GetVolumeGroupByID returns the volume group with the given id (empty Hits if it doesnt exist).
+func (c *Credentials) GetVolumeGroupByID(id int, timeout ...int) (*GetVolumeGroupsResponse, error) {
 	var apiResponse GetVolumeGroupsResponse
-	mapErr := mapstructure.Decode(apiRequest, &apiResponse)
-	if mapErr != nil {
-		return nil, mapErr
+	if err := c.queryInto("/volume_groups", url.Values{"id": {strconv.Itoa(id)}}, &apiResponse, httpTimeout(timeout)); err != nil {
+		return nil, err
 	}
-
 	return &apiResponse, nil
 }
 
@@ -129,163 +149,233 @@ func (c *Credentials) DeleteVolumeGroup(name string, timeout ...int) (*DeleteRes
 
 }
 
+// pre v1.4.0, full pull + client side filter. kept for reference
+// // GetVolumeGroupID provides the ID for the provided Volume Group name.
+// func (c *Credentials) GetVolumeGroupID(name string, timeout ...int) (int, error) {
+//
+// 	httpTimeout := httpTimeout(timeout)
+//
+// 	allVolumeGroups, err := c.GetVolumeGroups(httpTimeout)
+// 	if err != nil {
+// 		return 0, err
+// 	}
+//
+// 	// Set volumeGroupID to a value (-1) that can not be returned by the server
+// 	volumeGroupID := -1
+// 	for _, volumeGroup := range allVolumeGroups.Hits {
+// 		if volumeGroup.Name == name {
+// 			volumeGroupID = volumeGroup.ID
+// 		}
+//
+// 	}
+//
+// 	// If the volumeGroupID has not been updated (i.e not found on the server) return an error message
+// 	if volumeGroupID == -1 {
+// 		return 0, fmt.Errorf("The server does not contain a Volume Group named '%s'", name)
+// 	}
+//
+// 	return volumeGroupID, nil
+//
+// }
+
 // GetVolumeGroupID provides the ID for the provided Volume Group name.
 func (c *Credentials) GetVolumeGroupID(name string, timeout ...int) (int, error) {
-
-	httpTimeout := httpTimeout(timeout)
-
-	allVolumeGroups, err := c.GetVolumeGroups(httpTimeout)
+	volumeGroups, err := c.GetVolumeGroupByName(name, timeout...)
 	if err != nil {
 		return 0, err
 	}
-
-	// Set volumeGroupID to a value (-1) that can not be returned by the server
-	volumeGroupID := -1
-	for _, volumeGroup := range allVolumeGroups.Hits {
-		if volumeGroup.Name == name {
-			volumeGroupID = volumeGroup.ID
+	// api name match ignores case, keep ours exact
+	for _, vg := range volumeGroups.Hits {
+		if vg.Name == name {
+			return vg.ID, nil
 		}
-
 	}
-
-	// If the volumeGroupID has not been updated (i.e not found on the server) return an error message
-	if volumeGroupID == -1 {
-		return 0, fmt.Errorf("The server does not contain a Volume Group named '%s'", name)
-	}
-
-	return volumeGroupID, nil
-
+	return 0, fmt.Errorf("The server does not contain a Volume Group named '%s'", name)
 }
+
+// pre v1.4.0, full pull + client side filter. kept for reference
+// // GetCapacityPolicyName returns the name of the Capacity Police based on the provided Capacity Policy id.
+// func (c *Credentials) GetCapacityPolicyName(id int, timeout ...int) (string, error) {
+//
+// 	httpTimeout := httpTimeout(timeout)
+//
+// 	apiRequest, err := c.Get("/vg_capacity_policies", httpTimeout)
+// 	if err != nil {
+// 		return "", err
+// 	}
+//
+// 	// Convert the API Response (map[string]interface{}) to a struct
+// 	var apiResponse GetCapacityPolicyResponse
+// 	mapErr := mapstructure.Decode(apiRequest, &apiResponse)
+// 	if mapErr != nil {
+// 		return "", mapErr
+// 	}
+//
+// 	capacityPolicyName := ""
+// 	for _, capacityPolicy := range apiResponse.Hits {
+// 		if capacityPolicy.ID == id {
+// 			capacityPolicyName = capacityPolicy.Name
+// 		}
+// 	}
+//
+// 	// If the capacityPolicyName has not been updated (i.e not found on the server) return an error message
+// 	if capacityPolicyName == "" {
+// 		return "", fmt.Errorf("The server does not contain a Capacity Policy with the ID of '%d'", id)
+// 	}
+//
+// 	return capacityPolicyName, nil
+// }
 
 // GetCapacityPolicyName returns the name of the Capacity Police based on the provided Capacity Policy id.
 func (c *Credentials) GetCapacityPolicyName(id int, timeout ...int) (string, error) {
-
-	httpTimeout := httpTimeout(timeout)
-
-	apiRequest, err := c.Get("/vg_capacity_policies", httpTimeout)
+	policies, err := c.GetCapacityPolicyByID(id, timeout...)
 	if err != nil {
 		return "", err
 	}
-
-	// Convert the API Response (map[string]interface{}) to a struct
-	var apiResponse GetCapacityPolicyResponse
-	mapErr := mapstructure.Decode(apiRequest, &apiResponse)
-	if mapErr != nil {
-		return "", mapErr
-	}
-
-	capacityPolicyName := ""
-	for _, capacityPolicy := range apiResponse.Hits {
-		if capacityPolicy.ID == id {
-			capacityPolicyName = capacityPolicy.Name
-		}
-	}
-
-	// If the capacityPolicyName has not been updated (i.e not found on the server) return an error message
-	if capacityPolicyName == "" {
+	if len(policies.Hits) == 0 {
 		return "", fmt.Errorf("The server does not contain a Capacity Policy with the ID of '%d'", id)
 	}
-
-	return capacityPolicyName, nil
+	return policies.Hits[0].Name, nil
 }
+
+// pre v1.4.0, full pull + client side filter. kept for reference
+// // GetVolumeGroupHostMappings returns all Hosts that are mapped to the provided Volume Group.
+// func (c *Credentials) GetVolumeGroupHostMappings(volumeGroupName string, timeout ...int) ([]string, error) {
+//
+// 	httpTimeout := httpTimeout(timeout)
+//
+// 	volumeGroupID, err := c.GetVolumeGroupID(volumeGroupName)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+//
+// 	hostMappingsOnServer, err := c.GetHostMappings(httpTimeout)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+//
+// 	// Filter out the user provided volume and host from the hostMappingsOnServer
+// 	// results
+// 	hostName := []string{}
+//
+// 	for _, mapping := range hostMappingsOnServer {
+// 		if mapping.Volume.Ref == fmt.Sprintf("/volume_groups/%d", volumeGroupID) {
+// 			var hostID int
+// 			if strings.Contains(mapping.Host.Ref, "/hosts") == true {
+//
+// 				hostRefID := strings.Replace(mapping.Host.Ref, "/hosts/", "", 1)
+// 				hostID, err = strconv.Atoi(hostRefID)
+// 				if err != nil {
+// 					return nil, err
+// 				}
+//
+// 				name, err := c.GetHostName(hostID)
+// 				if err != nil {
+// 					return nil, err
+// 				}
+//
+// 				hostName = append(hostName, name)
+// 			}
+//
+// 		}
+//
+// 	}
+//
+// 	// // If the mappingID has not been updated (i.e not found on the server) return an error message
+// 	// if len(hostName) == 0 {
+// 	// 	return nil, fmt.Errorf("No Host Mappings found on the Volume Group '%s'", volumeGroupName)
+// 	// }
+//
+// 	return hostName, nil
+// }
 
 // GetVolumeGroupHostMappings returns all Hosts that are mapped to the provided Volume Group.
 func (c *Credentials) GetVolumeGroupHostMappings(volumeGroupName string, timeout ...int) ([]string, error) {
-
-	httpTimeout := httpTimeout(timeout)
-
-	volumeGroupID, err := c.GetVolumeGroupID(volumeGroupName)
+	volumeGroupID, err := c.GetVolumeGroupID(volumeGroupName, timeout...)
 	if err != nil {
 		return nil, err
 	}
-
-	hostMappingsOnServer, err := c.GetHostMappings(httpTimeout)
-	if err != nil {
-		return nil, err
-	}
-
-	// Filter out the user provided volume and host from the hostMappingsOnServer
-	// results
-	hostName := []string{}
-
-	for _, mapping := range hostMappingsOnServer {
-		if mapping.Volume.Ref == fmt.Sprintf("/volume_groups/%d", volumeGroupID) {
-			var hostID int
-			if strings.Contains(mapping.Host.Ref, "/hosts") == true {
-
-				hostRefID := strings.Replace(mapping.Host.Ref, "/hosts/", "", 1)
-				hostID, err = strconv.Atoi(hostRefID)
-				if err != nil {
-					return nil, err
-				}
-
-				name, err := c.GetHostName(hostID)
-				if err != nil {
-					return nil, err
-				}
-
-				hostName = append(hostName, name)
-			}
-
-		}
-
-	}
-
-	// // If the mappingID has not been updated (i.e not found on the server) return an error message
-	// if len(hostName) == 0 {
-	// 	return nil, fmt.Errorf("No Host Mappings found on the Volume Group '%s'", volumeGroupName)
-	// }
-
-	return hostName, nil
+	hosts, _, err := c.mappedNames(ref("volume_groups", volumeGroupID), httpTimeout(timeout))
+	return hosts, err
 }
+
+// pre v1.4.0, full pull + client side filter. kept for reference
+// // GetVolumeGroupVolumes provides the name of every Volume in a Volume Group.
+// func (c *Credentials) GetVolumeGroupVolumes(name string, timeout ...int) ([]string, error) {
+//
+// 	httpTimeout := httpTimeout(timeout)
+//
+// 	volumeGroupID, err := c.GetVolumeGroupID(name)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+//
+// 	allVolumes, err := c.GetVolumes(httpTimeout)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+//
+// 	volumes := []string{}
+// 	for _, volume := range allVolumes.Hits {
+// 		if string(volume.VolumeGroup.Ref) == fmt.Sprintf("/volume_groups/%d", volumeGroupID) {
+// 			volumes = append(volumes, volume.Name)
+// 		}
+// 	}
+//
+// 	// if len(volumes) == 0 {
+// 	// 	return nil, fmt.Errorf("The Volume Group '%s' does not contain any Volumes", name)
+// 	// }
+//
+// 	return volumes, nil
+//
+// }
 
 // GetVolumeGroupVolumes provides the name of every Volume in a Volume Group.
 func (c *Credentials) GetVolumeGroupVolumes(name string, timeout ...int) ([]string, error) {
-
-	httpTimeout := httpTimeout(timeout)
-
-	volumeGroupID, err := c.GetVolumeGroupID(name)
+	volumeGroupID, err := c.GetVolumeGroupID(name, timeout...)
 	if err != nil {
 		return nil, err
 	}
 
-	allVolumes, err := c.GetVolumes(httpTimeout)
-	if err != nil {
+	var vols GetVolumesResponse
+	if err := c.queryInto("/volumes", url.Values{"volume_group.ref": {ref("volume_groups", volumeGroupID)}}, &vols, httpTimeout(timeout)); err != nil {
 		return nil, err
 	}
 
 	volumes := []string{}
-	for _, volume := range allVolumes.Hits {
-		if string(volume.VolumeGroup.Ref) == fmt.Sprintf("/volume_groups/%d", volumeGroupID) {
-			volumes = append(volumes, volume.Name)
-		}
+	for _, volume := range vols.Hits {
+		volumes = append(volumes, volume.Name)
 	}
-
-	// if len(volumes) == 0 {
-	// 	return nil, fmt.Errorf("The Volume Group '%s' does not contain any Volumes", name)
-	// }
-
 	return volumes, nil
-
 }
-// GetVolumeGroupByName returns information on all Volume Groups found on the Silk server.
+// pre v1.4.0, full pull + client side filter. kept for reference
+// // GetVolumeGroupByName returns information on all Volume Groups found on the Silk server.
+// func (c *Credentials) GetVolumeGroupByName(volumegroupname string, timeout ...int) (*GetVolumeGroupsResponse, error) {
+//
+// 	httpTimeout := httpTimeout(timeout)
+//
+// 	enduri := ("/volume_groups?name__contains=" + volumegroupname)
+//
+// 	apiRequest, err := c.Get(enduri, httpTimeout)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+//
+// 	// Convert the API Response (map[string]interface{}) to a struct
+// 	var apiResponse GetVolumeGroupsResponse
+// 	mapErr := mapstructure.Decode(apiRequest, &apiResponse)
+// 	if mapErr != nil {
+// 		return nil, mapErr
+// 	}
+//
+// 	return &apiResponse, nil
+// }
+
+// GetVolumeGroupByName returns volume groups matching the name exactly (api match ignores case).
 func (c *Credentials) GetVolumeGroupByName(volumegroupname string, timeout ...int) (*GetVolumeGroupsResponse, error) {
-
-	httpTimeout := httpTimeout(timeout)
-
-	enduri := ("/volume_groups?name__contains=" + volumegroupname)
-
-	apiRequest, err := c.Get(enduri, httpTimeout)
-	if err != nil {
+	var apiResponse GetVolumeGroupsResponse
+	if err := c.queryInto("/volume_groups", url.Values{"name": {volumegroupname}}, &apiResponse, httpTimeout(timeout)); err != nil {
 		return nil, err
 	}
-
-	// Convert the API Response (map[string]interface{}) to a struct
-	var apiResponse GetVolumeGroupsResponse
-	mapErr := mapstructure.Decode(apiRequest, &apiResponse)
-	if mapErr != nil {
-		return nil, mapErr
-	}
-
 	return &apiResponse, nil
 }

@@ -389,54 +389,102 @@ type (
 		ID           int         `mapstructure:"id"`
 	}
 
-	// GetVolumeGroupSnapshotResponse Volume Group Snapshot GET response
-	GetVolumeGroupSnapshotResponse struct {
-		Hits []struct {
-			CreationTime            int         `mapstructure:"creation_time"`
-			DataCreationTime        interface{} `mapstructure:"data_creation_time"`
-			Description             interface{} `mapstructure:"description"`
-			GenerationNumber        interface{} `mapstructure:"generation_number"`
-			ID                      int         `mapstructure:"id"`
-			IsApplicationConsistent bool        `mapstructure:"is_application_consistent"`
-			IsAutoDeleteable        bool        `mapstructure:"is_auto_deleteable"`
-			IsDeleted               bool        `mapstructure:"is_deleted"`
-			IsExistOnPeer           bool        `mapstructure:"is_exist_on_peer"`
-			IsExposable             bool        `mapstructure:"is_exposable"`
-			IsExternal              bool        `mapstructure:"is_external"`
-			IsLockedByReplication   bool        `mapstructure:"is_locked_by_replication"`
-			IsOriginatingFromPeer   bool        `mapstructure:"is_originating_from_peer"`
-			IscsiTgtConvertedName   string      `mapstructure:"iscsi_tgt_converted_name"`
-			LastExposedTime         interface{} `mapstructure:"last_exposed_time"`
-			Name                    string      `mapstructure:"name"`
-			NumOfClones             int         `mapstructure:"num_of_clones"`
-			ReplicationSession      interface{} `mapstructure:"replication_session"`
-			RetentionPolicy         struct {
-				Ref string `mapstructure:"ref"`
-			} `mapstructure:"retention_policy"`
-			ShortName string `mapstructure:"short_name"`
-			Source    struct {
-				Ref string `mapstructure:"ref"`
-			} `mapstructure:"source"`
-			TriggeredBy                 string `mapstructure:"triggered_by"`
-			VolsnapsProvisionedCapacity int    `mapstructure:"volsnaps_provisioned_capacity"`
-			VolumeGroup                 struct {
-				Ref string `mapstructure:"ref"`
-			} `mapstructure:"volume_group"`
-			Wwn interface{} `mapstructure:"wwn"`
-		} `mapstructure:"hits"`
-		Limit  int `mapstructure:"limit"`
-		Offset int `mapstructure:"offset"`
-		Total  int `mapstructure:"total"`
+	// pre v1.4.0 snapshot types, kept for reference
+	// // GetVolumeGroupSnapshotResponse Volume Group Snapshot GET response
+	// GetVolumeGroupSnapshotResponse struct {
+	// Hits []struct {
+	// CreationTime            int         `mapstructure:"creation_time"`
+	// DataCreationTime        interface{} `mapstructure:"data_creation_time"`
+	// Description             interface{} `mapstructure:"description"`
+	// GenerationNumber        interface{} `mapstructure:"generation_number"`
+	// ID                      int         `mapstructure:"id"`
+	// IsApplicationConsistent bool        `mapstructure:"is_application_consistent"`
+	// IsAutoDeleteable        bool        `mapstructure:"is_auto_deleteable"`
+	// IsDeleted               bool        `mapstructure:"is_deleted"`
+	// IsExistOnPeer           bool        `mapstructure:"is_exist_on_peer"`
+	// IsExposable             bool        `mapstructure:"is_exposable"`
+	// IsExternal              bool        `mapstructure:"is_external"`
+	// IsLockedByReplication   bool        `mapstructure:"is_locked_by_replication"`
+	// IsOriginatingFromPeer   bool        `mapstructure:"is_originating_from_peer"`
+	// IscsiTgtConvertedName   string      `mapstructure:"iscsi_tgt_converted_name"`
+	// LastExposedTime         interface{} `mapstructure:"last_exposed_time"`
+	// Name                    string      `mapstructure:"name"`
+	// NumOfClones             int         `mapstructure:"num_of_clones"`
+	// ReplicationSession      interface{} `mapstructure:"replication_session"`
+	// RetentionPolicy         struct {
+	// Ref string `mapstructure:"ref"`
+	// } `mapstructure:"retention_policy"`
+	// ShortName string `mapstructure:"short_name"`
+	// Source    struct {
+	// Ref string `mapstructure:"ref"`
+	// } `mapstructure:"source"`
+	// TriggeredBy                 string `mapstructure:"triggered_by"`
+	// VolsnapsProvisionedCapacity int    `mapstructure:"volsnaps_provisioned_capacity"`
+	// VolumeGroup                 struct {
+	// Ref string `mapstructure:"ref"`
+	// } `mapstructure:"volume_group"`
+	// Wwn interface{} `mapstructure:"wwn"`
+	// } `mapstructure:"hits"`
+	// Limit  int `mapstructure:"limit"`
+	// Offset int `mapstructure:"offset"`
+	// Total  int `mapstructure:"total"`
+	// }
+
+	// // CreateOrUpdateVolumeGroupSnapshotResponse Volume Group Snapshotr POST/PATCH response
+	// CreateOrUpdateVolumeGroupSnapshotResponse struct {
+	// ShortName        string `mapstructure:"short_name"`
+	// Source           string `mapstructure:"source"`
+	// RetentionPolicy  string `mapstructure:"retention_policy"`
+	// IsAutoDeleteable bool   `mapstructure:"is_auto_deleteable"`
+	// IsExposable      bool   `mapstructure:"is_exposable"`
+	// }
+
+	// VolumeGroupSnapshot is one record off /snapshots. snapshots, views and view-snapshots all look like this
+	VolumeGroupSnapshot struct {
+		CreationTime            int         `mapstructure:"creation_time"`
+		DataCreationTime        interface{} `mapstructure:"data_creation_time"`
+		Description             interface{} `mapstructure:"description"`
+		GenerationNumber        interface{} `mapstructure:"generation_number"`
+		ID                      int         `mapstructure:"id"`
+		IsApplicationConsistent bool        `mapstructure:"is_application_consistent"`
+		IsAutoDeleteable        bool        `mapstructure:"is_auto_deleteable"`
+		IsDeleted               bool        `mapstructure:"is_deleted"`
+		IsExistOnPeer           bool        `mapstructure:"is_exist_on_peer"`
+		IsExposable             bool        `mapstructure:"is_exposable"`
+		IsExternal              bool        `mapstructure:"is_external"`
+		IsLockedByReplication   bool        `mapstructure:"is_locked_by_replication"`
+		IsOriginatingFromPeer   bool        `mapstructure:"is_originating_from_peer"`
+		IscsiTgtConvertedName   string      `mapstructure:"iscsi_tgt_converted_name"`
+		LastExposedTime         interface{} `mapstructure:"last_exposed_time"`
+		Name                    string      `mapstructure:"name"`
+		NumOfClones             int         `mapstructure:"num_of_clones"`
+		ReplicationSession      interface{} `mapstructure:"replication_session"`
+		RetentionPolicy         struct {
+			Ref string `mapstructure:"ref"`
+		} `mapstructure:"retention_policy"`
+		ShortName string `mapstructure:"short_name"`
+		Source    struct {
+			Ref string `mapstructure:"ref"`
+		} `mapstructure:"source"`
+		TriggeredBy                 string `mapstructure:"triggered_by"`
+		VolsnapsProvisionedCapacity int    `mapstructure:"volsnaps_provisioned_capacity"`
+		VolumeGroup                 struct {
+			Ref string `mapstructure:"ref"`
+		} `mapstructure:"volume_group"`
+		Wwn interface{} `mapstructure:"wwn"`
 	}
 
-	// CreateOrUpdateVolumeGroupSnapshotResponse Volume Group Snapshotr POST/PATCH response
-	CreateOrUpdateVolumeGroupSnapshotResponse struct {
-		ShortName        string `mapstructure:"short_name"`
-		Source           string `mapstructure:"source"`
-		RetentionPolicy  string `mapstructure:"retention_policy"`
-		IsAutoDeleteable bool   `mapstructure:"is_auto_deleteable"`
-		IsExposable      bool   `mapstructure:"is_exposable"`
+	// GetVolumeGroupSnapshotResponse Volume Group Snapshot GET response
+	GetVolumeGroupSnapshotResponse struct {
+		Hits   []VolumeGroupSnapshot `mapstructure:"hits"`
+		Limit  int                   `mapstructure:"limit"`
+		Offset int                   `mapstructure:"offset"`
+		Total  int                   `mapstructure:"total"`
 	}
+
+	// CreateOrUpdateVolumeGroupSnapshotResponse is what the create/update snapshot and view functions hand back
+	// old one had source etc as strings, which never matched what the api sends
+	CreateOrUpdateVolumeGroupSnapshotResponse VolumeGroupSnapshot
 
 	// CreateThinCloneResponse holds the response of the CreateThinClone() function
 	CreateThinCloneResponse struct {
